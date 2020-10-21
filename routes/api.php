@@ -32,6 +32,7 @@ Route::group(['prefix' => 'user'], function (){
             Route::resource('departments','Rh\DepartmentController')->middleware('scope:do_anyThings,can_create');
             Route::get('restore/department/{id}','Rh\RestoreDeleteController@departement')->middleware('scope:do_anyThings');
             Route::get('restore/leave/{id}','Rh\RestoreDeleteController@leave')->middleware('scope:do_anyThings');
+            Route::get('restore/add_hour/{id}','Rh\RestoreDeleteController@add_hour')->middleware('scope:do_anyThings');
             Route::get('restore/speciality/{id}','Rh\RestoreDeleteController@speciality')->middleware('scope:do_anyThings');
             Route::get('all_departement','Rh\RestoreDeleteController@allDepartement')->middleware('scope:do_anyThings,can_create');
             Route::get('all_specialities','Rh\RestoreDeleteController@allSpecialities')->middleware('scope:do_anyThings,can_create');

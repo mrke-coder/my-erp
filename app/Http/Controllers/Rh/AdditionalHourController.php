@@ -56,27 +56,31 @@ class AdditionalHourController extends Controller
        $validator = Validator::make($request->all(), $this->_rules);
 
        if($validator->fails()){
-           return response()->json($validator->errors());
+           return response()->json($validator->errors(),422);
+       }
+
+       if ($request->start === $request->end){
+           return response()->json("La date ou l'heure du début doit être strictement différent de la date ou l'heure de fin",400);
+       }
+
+       $addHour = new AdditionalHour();
+
+       $addHour->start = $request->start;
+       $addHour->end = $request->end;
+       $addHour->patterns = $request->patterns;
+       $addHour->employee_id = $request->employee_id;
+
+       if ($addHour->save()){
+           $data = AdditionalHour::query()
+               ->join('employees','additional_hours.employee_id','=','employees.id')
+               ->select('employees.*',
+                   'additional_hours.start as start', 'additional_hours.end as end', 'additional_hours.patterns as patterns',
+                   'additional_hours.id as add_hour_id', 'additional_hours.deleted_at as add_hour_deleted_at')
+               ->where('additional_hours.id', '=',$addHour->id)
+                ->first();
+           return response()->json($data, 201);
        } else{
-
-           $addHour = new AdditionalHour();
-
-           $addHour->start = $request->start;
-           $addHour->end = $request->end;
-           $addHour->patterns = $request->patterns;
-           $addHour->employee_id = $request->employeeId;
-
-           if ($addHour->save()){
-               $data = AdditionalHour::query()
-                   ->join('employees','additional_hours.employee_id','=','employees.id')
-                   ->select('employees.*',
-                       'additional_hours.start as start', 'additional_hours.end as end', 'additional_hours.patterns as patterns',
-                       'additional_hours.id as add_hour_id', 'additional_hours.deleted_at as add_hour_deleted_at')
-                   ->where('additional_hours.id', '=',$addHour->id);
-               return response()->json($data, 201);
-           } else{
-               return response()->json('Server error', 500);
-           }
+           return response()->json('Server error', 500);
        }
     }
 
@@ -120,13 +124,14 @@ class AdditionalHourController extends Controller
         $validator = Validator::make($request->all(), $this->_rules);
 
         if($validator->fails()){
-            return response()->json($validator->errors());
+            return response()->json($validator->errors(), 422);
         } else{
 
             $addHour = AdditionalHour::find($id);
             $addHour->start = $request->start;
             $addHour->end = $request->end;
             $addHour->patterns = $request->patterns;
+            $addHour->employee_id = $request->employee_id;
 
             if ($addHour->save()){
                 $data = AdditionalHour::query()
@@ -134,7 +139,8 @@ class AdditionalHourController extends Controller
                     ->select('employees.*',
                         'additional_hours.start as start', 'additional_hours.end as end', 'additional_hours.patterns as patterns',
                         'additional_hours.id as add_hour_id', 'additional_hours.deleted_at as add_hour_deleted_at')
-                    ->where('additional_hours.id', '=',$addHour->id);
+                    ->where('additional_hours.id', '=',$addHour->id)
+                    ->first();
                 return response()->json($data, 201);
             } else{
                 return response()->json('Server error', 500);

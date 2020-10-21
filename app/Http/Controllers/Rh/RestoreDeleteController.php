@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Rh;
 
 use App\Http\Controllers\Controller;
+use App\Models\RH\AdditionalHour;
 use App\Models\RH\Bonus;
 use App\Models\RH\Department;
 use App\Models\RH\Employee;
@@ -75,6 +76,18 @@ class RestoreDeleteController extends Controller
             return response()->json('Récupération effectuée avec succès');
         } else{
             return response()->json('Server Error',500);
+        }
+   }
+
+    public function add_hour(int $id)
+    {
+        $add_h = AdditionalHour::onlyTrashed()->where('id',$id)->first();
+
+        if ($add_h->restore()){
+            return response()->json("Réccupération effectuée avec succès");
+        } else{
+
+            return response()->json("Server error", 500);
         }
    }
 

@@ -19,7 +19,16 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
+                                        <tr v-for="add_h in addhours.data" :key="add_h.add_hour_id" :class="{'is_deteled':add_h.add_hour_deleted_at}">
+                                            <td>{{add_h.firstName+' '+add_h.lastName}}</td>
+                                            <td></td>
+                                            <td>{{add_h.start | moment('D MMM YYYY')}}</td>
+                                            <td>{{add_h.patterns.substr(0,15)}}...</td>
+                                            <td>
+                                                <button class="btn btn-success" @click.prevent="onEditing(add_h.add_hour_id)" :disabled="add_h.add_hour_deleted_at"><i class="fa fa-edit"></i></button>
+                                                <button class="btn btn-danger" v-show="!add_h.add_hour_deleted_at" @click.prevent="onDelete(add_h.add_hour_id)"><i class="fa fa-trash"></i></button>
+                                                <button class="btn btn-warning" v-show="add_h.add_hour_deleted_at" @click.prevent="onRestore(add_h.add_hour_id)"><i class="fa fa-refresh"></i></button>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -55,7 +64,7 @@
                         <b-form-timepicker
                             now-button
                             locale="fr"
-                            v-model="addHour.h_1"
+                            v-model="h_1"
                         ></b-form-timepicker>
                     </div>
 
@@ -69,7 +78,7 @@
                         <b-form-timepicker
                             now-button
                             locale="fr"
-                            v-model="addHour.h_2"
+                            v-model="h_2"
                         ></b-form-timepicker>
                     </div>
 
@@ -81,7 +90,7 @@
                     <div class="form-group mb-3">
                         <button class="btn btn-danger" type="reset" @click.prevent="hideModal">Annuler</button>
                         <button class="btn btn-success" type="submit" @click.prevent="onSubmit" v-show="!editing">Sauvegarder maintenant</button>
-                        <button class="btn btn-warning" type="submit" v-show="editing">Modifier maintenant</button>
+                        <button class="btn btn-warning" type="submit" v-show="editing" @click.prevent="onUpdate">Modifier maintenant</button>
                     </div>
                 </div>
             </form>
@@ -91,6 +100,7 @@
 
 <script>
     import *as service from "../../../../services/add-hourService";
+    import moment from "moment";
     export default {
         name: "AdditionalHour",
         data (){
@@ -100,12 +110,12 @@
                 editing: false,
                 errors: '',
                 modalTitle: '',
+                h_1: '',
+                h_2: '',
                 addHour: {
                     id: '',
                     start: '',
                     end: '',
-                    h_1: '',
-                    h_2: '',
                     patterns: '',
                     employee_id: ''
                 }
@@ -116,10 +126,13 @@
                 .then(response => this.employees = response.data);
         },
         mounted() {
+            this.getAdditionalHours();
         },
         methods:{
             showModal (){
                 this.addHour = {};
+                this.h_1 = '';
+                this.h_2 = '';
                 this.$bvModal.show('hours_modal');
                 this.editing = false;
             },
@@ -127,6 +140,8 @@
             hideModal (){
                 this.editing = false;
                 this.addHour ={};
+                this.h_1 = '';
+                this.h_2 = '';
                 this.$bvModal.hide('hours_modal')
             },
 
@@ -138,22 +153,92 @@
             },
 
             onSubmit: async function () {
-                const start = this.addHour.start+' '+this.addHour.h_1;
-                const end = this.addHour.end+' '+this.addHour.h_2;
-
-                if (start.length > 0 && start === end){
-                    this.$toastr.error("La date ou l'heure du début doit être strictement différent de la date ou l'heure de fin");
-                } else {
-                    this.addHour.start = start;
-                    this.addHour.end = end;
-                    try {
-                        const response = await  service.post_add_hour(this.addHour);
-                    } catch (e) {
-                        console.log(e.response)
+                const start = this.addHour.start+' '+this.h_1;
+                const end = this.addHour.end+' '+this.h_2;
+                this.addHour.start = start;
+                this.addHour.end = end;
+                try {
+                    const response = await  service.post_add_hour(this.addHour);
+                    this.hideModal();
+                    this.$toastr.success("Heure Supplémentaire enregistrée avec succès", "SAUVEGARDE REUSSIE");
+                    this.addhours.data.unshift(response.data)
+                } catch (e) {
+                    switch (e.response.status) {
+                        case 422:
+                            this.errors = e.response.data;
+                            this.$toastr.error("Un ou plusieurs champs ne sont pas correctement renseigné !", "ERREUR CHAMP");
+                            break;
+                        case 400:
+                            this.$toastr.error(e.response.data, "ERREUR DATE");
+                            break;
+                        case 500:
+                            this.$toastr.warning("Une erreur survenue lors de la connexion au serveur", "ERREUR SERVEUR");
+                            break;
+                        default:
+                            this.$toastr.error("Quelque chose s'est mal passé, veuillez rééssayer","ERREUR INCONNUE");
                     }
                 }
-            }
+            },
 
+            onEditing(id){
+                this.editing = true;
+                this.$bvModal.show('hours_modal');
+                service.add_hour(id)
+                    .then(response => {
+                        this.h_1 = response.data.start.split(" ")[1];
+                        this.h_2 = response.data.end.split(" ")[1];
+                        this.addHour = response.data
+                    });
+            },
+
+            onUpdate: async function (){
+                try {
+                    const start = this.addHour.start.split(" ")[0]+' '+this.h_1;
+                    const end = this.addHour.end.split(" ")[0]+' '+this.h_2;
+                    this.addHour.start = start;
+                    this.addHour.end = end;
+                    console.log(this.addHour);
+                    const response = await service.update_add_hour(this.addHour);
+                    this.hideModal();
+                    this.$toastr.success("Modification prise en compte et sauvegardée avec succès","MODIFICATION REUSSIE");
+                    this.addhours.data.map((el, i) => {
+                        if (el.add_hour_id === response.data.add_hour_id){
+                            this.addhours.data[i] = response.data;
+                        }
+                    });
+                }catch (e) {
+                    switch (e.response.status) {
+                        case 422:
+                            this.errors = e.response.data;
+                            this.$toastr.error("Un ou plusieurs champs ne sont pas correctement renseigné !", "ERREUR CHAMP");
+                            break;
+                        case 400:
+                            this.$toastr.error(e.response.data, "ERREUR DATE");
+                            break;
+                        case 500:
+                            this.$toastr.warning("Une erreur survenue lors de la connexion au serveur", "ERREUR SERVEUR");
+                            break;
+                        default:
+                            this.$toastr.error("Quelque chose s'est mal passé, veuillez rééssayer","ERREUR INCONNUE");
+                    }
+                }
+            },
+
+            onDelete (id) {
+                if (confirm("Voulez-vous vraiment supprimer ?")){
+                    service.delete_add_hour(id)
+                        .then(response => this.$toastr.success(response.data, "SUPPRESSION EFFECTIVE"))
+                        .catch(e => console.log(e.response));
+                }
+            },
+
+            onRestore (id) {
+                if (confirm("Voulez-vous vraiment réccuperer ?")){
+                    service.restore_add_hour(id)
+                        .then(response => this.$toastr.success(response.data, "RECCUPERATION REUSSIE"))
+                        .catch(e => console.log(e.response));
+                }
+            }
         }
     }
 </script>
