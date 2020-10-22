@@ -15,6 +15,7 @@ import PrimesEmployees from "./components/pages/Dashboard/Rh/PrimesEmployees";
 import Absence from "./components/pages/Dashboard/Rh/Absence";
 import Permission from "./components/pages/Dashboard/Rh/Permission.vue";
 import AdditionalHour from "./components/pages/Dashboard/Rh/AdditionalHour";
+import Training from "./components/pages/Dashboard/Rh/Training";
 export default {
     mode: 'history',
     routes: [
@@ -104,6 +105,11 @@ export default {
                                     path: '/dashboard/admin/rh/heures-supplementaires',
                                     name: 'Additional-Hour',
                                     component: AdditionalHour
+                                },
+                                {
+                                    path: "/dashboard/admin/rh/formation-des-employes",
+                                    name: "Training",
+                                    component: Training
                                 }
                             ]
                         }

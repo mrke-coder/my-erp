@@ -4,6 +4,8 @@
 namespace App\Repositories;
 
 
+use Carbon\Carbon;
+
 class RhRepository
 {
 
@@ -37,5 +39,12 @@ class RhRepository
         if (file_exists($chemin)){
          unlink($chemin);
         }
+    }
+
+    public static function getDuration($date1, $date2)
+    {
+        $date1 = Carbon::createFromDate($date1);
+        $date2 = Carbon::createFromDate($date2);
+       return $date1->diffInDays($date2);
     }
 }

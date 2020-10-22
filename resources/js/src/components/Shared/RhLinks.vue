@@ -61,7 +61,7 @@
             </router-link>
         </li>
         <li>
-            <router-link to="#" exact>
+            <router-link to="/dashboard/admin/rh/formation-des-employes" exact>
                 <span class="link-title">Formations des employés</span>
                 <i class="mdi mdi-speedometer link-icon"></i>
             </router-link>

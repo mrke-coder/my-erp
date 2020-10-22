@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Rh;
 
 use App\Http\Controllers\Controller;
 use App\Models\RH\Training;
+use App\Repositories\RhRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -11,7 +12,9 @@ class TrainingController extends Controller
 {
     private $_rules =[
         'type' => 'required',
-        'duration' => 'required|numeric'
+        'start_date' => ['required','date'],
+        'end_date' => ['required','date'],
+        'employee_id' => ['required']
     ];
     /**
      * Display a listing of the resource.
@@ -20,11 +23,12 @@ class TrainingController extends Controller
      */
     public function index()
     {
-        $trainings = Training::orderBy('created_at','DESC')->paginate(10);
-
-        if (count($trainings)===0){
-            return response()->json('No data',404);
-        }
+        $trainings = Training::withTrashed()
+            ->join('employees','employees.id','=','trainings.employee_id')
+            ->select('employees.*',
+                'trainings.start_date as start_date', 'trainings.end_date as end_date', 'trainings.type as type',
+                'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at')
+            ->orderBy('created_at','DESC')->paginate(10);
 
         return response()->json($trainings,200);
     }
@@ -50,17 +54,31 @@ class TrainingController extends Controller
        $validator = Validator::make($request->all(), $this->_rules);
 
        if ($validator->fails()){
-           return response()->json($validator->fails(),400);
+           return response()->json($validator->fails(),422);
        }
 
+       if ($request->start_date > $request->end_date || $request->start_date === $request->end_date){
+           return response()->json('Désolé, la date de début doit être inférieure à la date de fin',400);
+       }
        $training = new Training();
 
+       $duration = RhRepository::getDuration($request->start_date,$request->end_date);
+       dd($duration);
        $training->type = $request->type;
-       $training->duration = $request->duration;
-       $training->employee_id = $request->employee;
+       $training->start_date = $request->start_date;
+       $training->end_date = $request->end_date;
+       $training->duration = $duration;
+       $training->employee_id = $request->employee_id;
 
        if ($training->save()){
-           return response()->json($training, 201);
+           $data = Training::query()
+               ->join('employees','employees.id','=','trainings.employee_id')
+               ->select('employees.*',
+                   'trainings.start_date as start_date', 'trainings.end_date as end_date', 'trainings.type as type',
+                   'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at')
+               ->where('trainings.id','=',$training->id)
+               ->first();
+           return response()->json($data, 201);
        } else{
            return response()->json('Server error',500);
        }
@@ -75,10 +93,6 @@ class TrainingController extends Controller
     public function show($id)
     {
        $training = Training::find($id);
-
-       if (is_null($training)){
-           return response()->json('No data match with id: '.$id);
-       }
 
        return response()->json($training,200);
     }
@@ -112,10 +126,20 @@ class TrainingController extends Controller
         $training = Training::find($id);
 
         $training->type = $request->type;
+        $training->start_date = $request->start_date;
+        $training->end_date = $request->end_date;
+        $training->employee_id = $request->employee_id;
         $training->duration = $request->duration;
 
         if ($training->save()){
-            return response()->json($training, 201);
+            $data = Training::query()
+                ->join('employees','employees.id','=','trainings.employee_id')
+                ->select('employees.*',
+                    'trainings.start_date as start_date', 'trainings.end_date as end_date', 'trainings.type as type',
+                    'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at')
+                ->where('trainings.id','=',$training->id)
+                ->first();
+            return response()->json($data, 201);
         } else{
             return response()->json('Server error',500);
         }
