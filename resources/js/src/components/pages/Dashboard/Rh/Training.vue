@@ -13,6 +13,7 @@
                                 <thead>
                                     <tr>
                                         <th>EMPLOY&Eacute;</th>
+                                        <th>TYPE FORMATION</th>
                                         <th>D&Eacute;BUT FORMATION</th>
                                         <th>FIN FORMATION</th>
                                         <th>DUR&Eacute;E FORMATION</th>
@@ -20,8 +21,17 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-
+                                    <tr v-for="training in trainings.data" :key="training.training_id" :class="{'is_deteled':training.training_deleted_at}">
+                                        <td>{{training.firstName+' '+training.lastName}}</td>
+                                        <td>{{training.type}}</td>
+                                        <td>{{training.start_date | moment("D MMM YYYY")}}</td>
+                                        <td>{{training.end_date | moment("D MMM YYYY")}}</td>
+                                        <td>{{training.duration > 1 ? training.duration+' Jours':training.duration+' Jour'}}</td>
+                                        <td>
+                                            <button class="btn btn-success btn-sm" @click.prevent="onEditing(training.training_id)" :disabled="training.training_deleted_at"><i class="fa fa-edit"></i></button>
+                                            <button class="btn btn-danger btn-sm" v-show="!training.training_deleted_at" @click.prevent="onDelete(training.training_id)"><i class="fa fa-trash"></i></button>
+                                            <button class="btn btn-warning btn-sm" v-show="training.training_deleted_at" @click.prevent="onRestore(training.training_id)"><i class="fa fa-refresh"></i></button>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -47,19 +57,22 @@
                     </div>
 
                     <div class="form-group col-lg-12 col-sm-12 mb-3">
-                        <label>MOTIF DE L'HEURE SUPPL&Eacute;MENTAIRE</label>
-                        <input type="text" class="form-control" v-model="training.type" placeholder="Type De Formation">
+                        <label>TYPE DE FORMATION</label>
+                        <input type="text" class="form-control" v-model="training.type" placeholder="Type De Formation" :class="{'is-invalid':errors.type}">
+                        <div class="invalid-feedback" role="alert" v-if="errors.type">{{errors.type[0]}}</div>
                     </div>
 
                     <div class="form-group col-lg-12 col-sm-12 mb-3">
                         <label>DATE D&Eacute;BUT</label>
-                        <b-form-datepicker v-model="training.start_date" class="mb-2"></b-form-datepicker>
+                        <b-form-datepicker v-model="training.start_date" class="mb-2" :class="{'is-invalid':errors.start_date}"></b-form-datepicker>
+                        <div class="invalid-feedback" role="alert" v-if="errors.start_date">{{errors.start_date[0]}}</div>
                     </div>
 
 
                     <div class="form-group col-lg-12 col-sm-12 mb-3">
                         <label>DATE FIN</label>
-                        <b-form-datepicker v-model="training.end_date" class="mb-2"></b-form-datepicker>
+                        <b-form-datepicker v-model="training.end_date" class="mb-2" :class="{'is-invalid':errors.end_date}"></b-form-datepicker>
+                        <div class="invalid-feedback" role="alert" v-if="errors.end_date">{{errors.end_date[0]}}</div>
                     </div>
 
 
@@ -78,10 +91,10 @@
     import *as service from "../../../../services/trainingService";
     export default {
         name: "Training",
-        data (){
+        data() {
             return {
-                employees:[],
-                trainings:{},
+                employees: [],
+                trainings: {},
                 editing: false,
                 errors: '',
                 modalTitle: '',
@@ -103,31 +116,34 @@
         mounted() {
             this.getTrainings();
         },
-        methods:{
+        methods: {
 
-            showModal (){
+            showModal() {
                 this.training = {};
                 this.$bvModal.show('training_modal');
                 this.modalTitle = "Ajout une nouvelle formation";
                 this.editing = false;
             },
 
-            hideModal (){
+            hideModal() {
                 this.editing = false;
-                this.training ={};
+                this.training = {};
                 this.$bvModal.hide('training_modal')
             },
 
-            getTrainings (page = 1) {
+            getTrainings(page = 1) {
                 service.trainings(page)
-                    .then(response => this.trainings === response.data);
+                    .then(response => this.trainings = response.data);
             },
 
-            onSubmit: async function (){
+            onSubmit: async function () {
                 try {
                     const response = await service.post_training(this.training);
-                    console.log(response)
-                }catch (e) {
+                    this.hideModal();
+                    this.$toastr.success("Les données de formation ajoutées ont été enrgistrées avec succès", "SAUVEGARDE REUSSIE");
+                    this.trainings.data.unshift(response.data);
+                    //console.log(response)
+                } catch (e) {
                     switch (e.response.status) {
                         case 422:
                             this.errors = e.response.data;
@@ -140,15 +156,68 @@
                             this.$toastr.warning("Une erreur survenue lors de la connexion au serveur", "ERREUR SERVEUR");
                             break;
                         default:
-                            this.$toastr.error("Quelque chose s'est mal passé, veuillez rééssayer","ERREUR INCONNUE");
+                            this.$toastr.error("Quelque chose s'est mal passé, veuillez rééssayer", "ERREUR INCONNUE");
                     }
                 }
-            }
+            },
 
+            onEditing(id) {
+                this.editing = true;
+                service.training(id)
+                    .then(response => this.training = response.data);
+                this.$bvModal.show('training_modal');
+            },
+
+            onUpdate: async function () {
+                try {
+                    const response = await service.update_training(this.training);
+                    this.hideModal();
+                    this.$toastr.success("Modification des données de formation a été prise en compte", "MODIFICATION REUSSIE");
+                    this.trainings.data.map((el, i) => {
+                        if (el.training_id === response.data.training_id) {
+                            this.trainings.data[i] = response.data;
+                        }
+                    });
+                } catch (e) {
+                    switch (e.response.status) {
+                        case 422:
+                            this.errors = e.response.data;
+                            this.$toastr.error("Un ou plusieurs champs ne sont pas correctement renseigné !", "ERREUR CHAMP");
+                            break;
+                        case 400:
+                            this.$toastr.error(e.response.data, "ERREUR DATE");
+                            break;
+                        case 500:
+                            this.$toastr.warning("Une erreur survenue lors de la connexion au serveur", "ERREUR SERVEUR");
+                            break;
+                        default:
+                            this.$toastr.error("Quelque chose s'est mal passé, veuillez rééssayer", "ERREUR INCONNUE");
+                    }
+                }
+
+            },
+
+            onDelete (id) {
+                if (confirm("Voulez-vous vraiement supprimer ?")){
+                    service.delete_training(id)
+                        .then(response => this.$toastr.success(response.data, "SUPPRESSION REUSSIE"))
+                        .catch(e => {
+                            console.log(e.response);
+                            this.$toastr.error(e.response.data, "ERREUR")
+                        });
+                }
+            },
+
+            onRestore (id) {
+                if (confirm("Voulez-vous vraiement réccuperer ?")){
+                    service.restore_training(id)
+                        .then(response => this.$toastr.success(response.data, "DONN&Eacute;E RESTOR&Eacute;"))
+                        .catch(e => {
+                            console.log(e.response);
+                            this.$toastr.error(e.response.data, "ERREUR")
+                        });
+                }
+            }
         }
     }
 </script>
-
-<style scoped>
-
-</style>

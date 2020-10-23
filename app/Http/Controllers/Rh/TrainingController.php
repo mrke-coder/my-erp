@@ -27,7 +27,7 @@ class TrainingController extends Controller
             ->join('employees','employees.id','=','trainings.employee_id')
             ->select('employees.*',
                 'trainings.start_date as start_date', 'trainings.end_date as end_date', 'trainings.type as type',
-                'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at')
+                'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at', 'trainings.duration as duration')
             ->orderBy('created_at','DESC')->paginate(10);
 
         return response()->json($trainings,200);
@@ -54,7 +54,7 @@ class TrainingController extends Controller
        $validator = Validator::make($request->all(), $this->_rules);
 
        if ($validator->fails()){
-           return response()->json($validator->fails(),422);
+           return response()->json($validator->errors(),422);
        }
 
        if ($request->start_date > $request->end_date || $request->start_date === $request->end_date){
@@ -63,7 +63,7 @@ class TrainingController extends Controller
        $training = new Training();
 
        $duration = RhRepository::getDuration($request->start_date,$request->end_date);
-       dd($duration);
+       //dd($duration);
        $training->type = $request->type;
        $training->start_date = $request->start_date;
        $training->end_date = $request->end_date;
@@ -75,7 +75,7 @@ class TrainingController extends Controller
                ->join('employees','employees.id','=','trainings.employee_id')
                ->select('employees.*',
                    'trainings.start_date as start_date', 'trainings.end_date as end_date', 'trainings.type as type',
-                   'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at')
+                   'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at', 'trainings.duration as duration')
                ->where('trainings.id','=',$training->id)
                ->first();
            return response()->json($data, 201);
@@ -123,20 +123,25 @@ class TrainingController extends Controller
             return response()->json($validator->fails(),400);
         }
 
+        if ($request->start_date > $request->end_date || $request->start_date === $request->end_date){
+            return response()->json('Désolé, la date de début doit être inférieure à la date de fin',400);
+        }
+
+        $duration = RhRepository::getDuration($request->start_date,$request->end_date);
         $training = Training::find($id);
 
         $training->type = $request->type;
         $training->start_date = $request->start_date;
         $training->end_date = $request->end_date;
         $training->employee_id = $request->employee_id;
-        $training->duration = $request->duration;
+        $training->duration = $duration;
 
         if ($training->save()){
             $data = Training::query()
                 ->join('employees','employees.id','=','trainings.employee_id')
                 ->select('employees.*',
                     'trainings.start_date as start_date', 'trainings.end_date as end_date', 'trainings.type as type',
-                    'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at')
+                    'trainings.id as training_id', 'trainings.deleted_at as training_deleted_at', 'trainings.duration as duration')
                 ->where('trainings.id','=',$training->id)
                 ->first();
             return response()->json($data, 201);
@@ -151,8 +156,14 @@ class TrainingController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        //
+       $training = Training::find($id);
+
+       if ($training->delete()){
+           return response()->json("Suppression de la formation est effective");
+       } else{
+           return response()->json('Server error', 500);
+       }
     }
 }

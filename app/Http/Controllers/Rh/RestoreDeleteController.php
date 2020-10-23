@@ -9,6 +9,7 @@ use App\Models\RH\Department;
 use App\Models\RH\Employee;
 use App\Models\RH\Leave;
 use App\Models\RH\Speciality;
+use App\Models\RH\Training;
 use App\Models\RH\Wage;
 use App\User;
 use Illuminate\Http\Request;
@@ -88,6 +89,17 @@ class RestoreDeleteController extends Controller
         } else{
 
             return response()->json("Server error", 500);
+        }
+   }
+
+    public function training(int $id)
+    {
+        $training = Training::onlyTrashed()->where('id',$id)->first();
+
+        if ($training->restore()){
+            return response()->json("Réccupération effectuée avec succès");
+        } else{
+            return response()->json('Server error', 500);
         }
    }
 
