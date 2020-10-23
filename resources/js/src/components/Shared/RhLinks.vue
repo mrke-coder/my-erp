@@ -67,7 +67,7 @@
             </router-link>
         </li>
         <li>
-            <router-link to="#" exact>
+            <router-link to="/dashboard/admin/rh/demandes-d-emploi" exact>
                 <span class="link-title">Demandes d'emploi</span>
                 <i class="mdi mdi-briefcase-check link-icon"></i>
             </router-link>
