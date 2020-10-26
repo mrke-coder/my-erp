@@ -3,9 +3,11 @@
 namespace App\Models\RH;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Displacement extends Model
 {
+    use SoftDeletes;
     protected $table="displacements";
     protected $fillable=[
         'displacement_date',

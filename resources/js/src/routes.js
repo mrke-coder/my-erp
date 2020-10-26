@@ -17,6 +17,7 @@ import Permission from "./components/pages/Dashboard/Rh/Permission.vue";
 import AdditionalHour from "./components/pages/Dashboard/Rh/AdditionalHour";
 import Training from "./components/pages/Dashboard/Rh/Training";
 import JobApplication from "./components/pages/Dashboard/Rh/JobApplication";
+import Mission from "./components/pages/Dashboard/Rh/Mission";
 export default {
     mode: 'history',
     routes: [
@@ -116,6 +117,11 @@ export default {
                                     path: "/dashboard/admin/rh/demandes-d-emploi",
                                     name: "Job",
                                     component: JobApplication
+                                },
+                                {
+                                    path: "/dashboard/admin/rh/missions-employes",
+                                    name: "Mission",
+                                    component: Mission
                                 }
                             ]
                         }

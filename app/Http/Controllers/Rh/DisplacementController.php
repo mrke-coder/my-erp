@@ -10,12 +10,13 @@ use Illuminate\Support\Facades\Validator;
 class DisplacementController extends Controller
 {
     private $_rules = [
-        'date' => 'required|date',
+        'displacement_date' => 'required|date',
         'return_date' => 'required|date',
         'destination' => 'required',
-        'means' => 'required',
-        'costs' => 'required|numeric',
-        'accommodation_costs' => 'required|numeric'
+        'means' => 'required|max:200',
+        'costs' => 'required',
+        'accommodation_costs' => 'required',
+        'employee_id' => 'required'
     ];
     /**
      * Display a listing of the resource.
@@ -24,12 +25,13 @@ class DisplacementController extends Controller
      */
     public function index()
     {
-       $displts = Displacement::orderBy('created_at','DESC')->paginate(10);
-       if (count($displts)===0){
-           return response()->json('No Data', 404);
-       }
-
-       return response()->json($displts,200);
+       $displts = Displacement::withTrashed()
+           ->join('employees', 'displacements.employee_id','=','employees.id')
+           ->select('displacements.*',
+               'employees.firstName as prenom', 'employees.lastName as nom')
+           ->orderBy('created_at','DESC')
+           ->paginate(10);
+       return response()->json($displts);
     }
 
     /**
@@ -53,12 +55,12 @@ class DisplacementController extends Controller
        $validator = Validator::make($request->all(), $this->_rules);
 
        if ($validator->fails()){
-           return response()->json($validator->errors(), 400);
+           return response()->json($validator->errors(), 422);
        }
 
        $displt = new Displacement();
 
-       $displt->displacement_date = $request->date;
+       $displt->displacement_date = $request->displacement_date;
        $displt->return_date = $request->return_date;
        $displt->destination = $request->destination;
        $displt->means = $request->means;
@@ -67,7 +69,13 @@ class DisplacementController extends Controller
        $displt->employee_id = $request->employee_id;
 
        if ($displt->save()){
-           return response()->json($displt,201);
+           $data = Displacement::query()
+               ->join('employees', 'displacements.employee_id','=','employees.id')
+               ->select('displacements.*',
+                   'employees.firstName as prenom', 'employees.lastName as nom')
+               ->where('displacements.id','=',$displt->id)
+               ->first();
+           return response()->json($data,201);
        } else{
            return response()->json('Server error', 500);
        }
@@ -82,11 +90,6 @@ class DisplacementController extends Controller
     public function show($id)
     {
        $displcmt = Displacement::find($id);
-
-       if (is_null($displcmt)){
-           return response()->json('No data with tis id',404);
-       }
-
        return response()->json($displcmt,200);
     }
 
@@ -118,7 +121,7 @@ class DisplacementController extends Controller
 
         $displt = Displacement::find($id);
 
-        $displt->displacement_date = $request->date;
+        $displt->displacement_date = $request->displacement_date;
         $displt->return_date = $request->return_date;
         $displt->destination = $request->destination;
         $displt->means = $request->means;
@@ -126,7 +129,13 @@ class DisplacementController extends Controller
         $displt->accommodation_costs = $request->accommodation_costs;
 
         if ($displt->save()){
-            return response()->json($displt,201);
+            $data = Displacement::query()
+                ->join('employees', 'displacements.employee_id','=','employees.id')
+                ->select('displacements.*',
+                    'employees.firstName as prenom', 'employees.lastName as nom')
+                ->where('displacements.id','=',$displt->id)
+                ->first();
+            return response()->json($data,201);
         } else{
             return response()->json('Server error', 500);
         }
@@ -138,8 +147,14 @@ class DisplacementController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        //
+       $mission = Displacement::find($id);
+
+       if ($mission->delete()) {
+           return response()->json("Suppression de de la mission a été effectuée avec succès");
+       } else{
+           return  response()->json("Server error", 500);
+       }
     }
 }

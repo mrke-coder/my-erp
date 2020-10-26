@@ -73,7 +73,7 @@
             </router-link>
         </li>
         <li>
-            <router-link to="#" exact>
+            <router-link to="/dashboard/admin/rh/missions-employes" exact>
                 <span class="link-title">Missions</span>
                 <i class="mdi mdi-airplane link-icon"></i>
             </router-link>
