@@ -25,5 +25,5 @@ export const delete_displacement = (id) => {
 };
 
 export const restore_displacement = (id) => {
-    return http().get('restore/displacement/'+id);
+    return http().get('rh/restore/displacement/'+id);
 };

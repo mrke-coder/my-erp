@@ -50,7 +50,7 @@
         </li>
         <li>
             <router-link to="/dashboard/admin/rh/permissions" exact>
-                <span class="link-title">Permissions</span>
+                <span class="link-title">Permissions / Congés</span>
                 <i class="mdi mdi-account-key link-icon"></i>
             </router-link>
         </li>
@@ -79,13 +79,7 @@
             </router-link>
         </li>
         <li>
-            <router-link to="#" exact>
-                <span class="link-title">Congés</span>
-                <i class="mdi mdi-alarm-snooze link-icon"></i>
-            </router-link>
-        </li>
-        <li>
-            <router-link to="#" exact>
+            <router-link to="/dashboard/admin/rh/demissions-employes" exact>
                 <span class="link-title">Démissions</span>
                 <i class="mdi mdi-transit-transfer link-icon"></i>
             </router-link>

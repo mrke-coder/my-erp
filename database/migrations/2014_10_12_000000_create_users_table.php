@@ -284,6 +284,5 @@ class CreateUsersTable extends Migration
         Schema::table('displacements', function (Blueprint $table) {
           $table->dropSoftDeletes();
         });
-        Schema::dropIfExists('users');
     }
 }

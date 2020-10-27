@@ -9,7 +9,11 @@ use Illuminate\Support\Facades\Validator;
 
 class DepartureController extends Controller
 {
-    private $_rules =['patterns' => 'required'];
+    private $_rules =[
+        'patterns' => 'required|max:200',
+        'departure_date' => 'required',
+        'employee_id' => 'required'
+        ];
     /**
      * Display a listing of the resource.
      *
@@ -17,10 +21,11 @@ class DepartureController extends Controller
      */
     public function index()
     {
-       $departure = Departure::orderBy('created_at','DESC')->paginate(10);
-       if (count($departure)===0){
-           return response()->json('No data',404);
-       }
+       $departure = Departure::withTrashed()
+           ->join('employees', 'employees.id', '=', 'departures.employee_id')
+           ->select('departures.*',
+               'employees.firstName as prenom','employees.lastName as nom')
+           ->orderBy('created_at','DESC')->paginate(10);
 
        return response()->json($departure,200);
     }
@@ -49,11 +54,18 @@ class DepartureController extends Controller
 
         $departure = new Departure();
 
+        $departure->departure_date = $request->departure_date;
         $departure->patterns = $request->patterns;
-        $departure->employee_id = $request->employeeId;
+        $departure->employee_id = $request->employee_id;
 
         if ($departure->save()){
-            return response()->json($departure,201);
+            $data = Departure::query()
+                ->join('employees', 'employees.id', '=', 'departures.employee_id')
+                ->select('departures.*',
+                    'employees.firstName as prenom','employees.lastName as nom')
+                ->where('departures.id','=', $departure->id)
+                ->first();
+            return response()->json($data,201);
         } else{
             return response()->json('Server error',500);
         }
@@ -65,13 +77,9 @@ class DepartureController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id)
     {
         $departure = Departure::find($id);
-
-        if (is_null($departure)){
-            return response()->json('data not fund',404);
-        }
 
         return response()->json($departure,200);
     }
@@ -94,7 +102,7 @@ class DepartureController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $validator = Validator::make($request->all(), $this->_rules);
 
@@ -102,14 +110,18 @@ class DepartureController extends Controller
 
         $departure = Departure::find($id);
 
-        if (is_null($departure)){
-            return response()->json('Data not fund', 404);
-        }
-
         $departure->patterns = $request->patterns;
+        $departure->employee_id = $request->employee_id;
+        $departure->departure_date = $request->departure_date;
 
         if ($departure->save()){
-            return response()->json($departure,201);
+            $data = Departure::query()
+                ->join('employees', 'employees.id', '=', 'departures.employee_id')
+                ->select('departures.*',
+                    'employees.firstName as prenom','employees.lastName as nom')
+                ->where('departures.id','=', $departure->id)
+                ->first();
+            return response()->json($data,201);
         } else{
             return response()->json('Server error',500);
         }
@@ -121,8 +133,14 @@ class DepartureController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        //
+        $departure = Departure::find($id);
+
+        if ($departure->delete()) {
+            return response()->json('Suppression de la sauvegarde a été effectuée avec succès');
+        } else {
+            return  response()->json("Server error", 500);
+        }
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RH\AdditionalHour;
 use App\Models\RH\Bonus;
 use App\Models\RH\Department;
+use App\Models\RH\Departure;
 use App\Models\RH\Displacement;
 use App\Models\RH\Employee;
 use App\Models\RH\Leave;
@@ -109,6 +110,17 @@ class RestoreDeleteController extends Controller
         $mission = Displacement::onlyTrashed()->where('id',$id)->first();
 
         if ($mission->restore()){
+            return response()->json("Réccupération effectuée avec succès");
+        } else{
+            return response()->json('Server error', 500);
+        }
+   }
+
+    public function departure(int $id)
+    {
+        $departure = Departure::onlyTrashed()->where('id',$id)->first();
+
+        if ($departure->restore()){
             return response()->json("Réccupération effectuée avec succès");
         } else{
             return response()->json('Server error', 500);

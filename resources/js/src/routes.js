@@ -18,6 +18,7 @@ import AdditionalHour from "./components/pages/Dashboard/Rh/AdditionalHour";
 import Training from "./components/pages/Dashboard/Rh/Training";
 import JobApplication from "./components/pages/Dashboard/Rh/JobApplication";
 import Mission from "./components/pages/Dashboard/Rh/Mission";
+import Departure from "./components/pages/Dashboard/Rh/Departure";
 export default {
     mode: 'history',
     routes: [
@@ -122,6 +123,11 @@ export default {
                                     path: "/dashboard/admin/rh/missions-employes",
                                     name: "Mission",
                                     component: Mission
+                                },
+                                {
+                                    path: "/dashboard/admin/rh/demissions-employes",
+                                    name: "Departure",
+                                    component: Departure
                                 }
                             ]
                         }

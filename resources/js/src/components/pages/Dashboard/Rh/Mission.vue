@@ -256,7 +256,7 @@
             onRestore (id) {
                 if (confirm("Êtes-vous sûr de vouloir restorer ?")){
                     service.restore_displacement(id)
-                        .then(response => this.$toastr.success(response.data))
+                        .then(response => this.$toastr.success(response.data, "RECCUPERATION REUSSIE"))
                         .catch(e => console.log(e.response));
                 }
             }
