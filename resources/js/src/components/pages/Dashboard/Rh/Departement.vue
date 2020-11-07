@@ -20,8 +20,9 @@
               <div class="grid-body">
                   <div class="item-wrapper">
                       <button @click.prevent="showModal" class="btn btn-primary">
-                          <i class="fa fa-plus"></i> Nouveau Département
+                          <i class="fa fa-plus"></i>&nbsp; Nouveau Département
                       </button>
+                      <br><br>
                       <div class="table-responsive">
                           <table class="table table-striped" width="100%" cellpadding="0">
                               <thead>
@@ -42,7 +43,7 @@
                               </tr>
                               <tr v-for="service in services.data" :key="service.id" v-show="!loading" :class="{'is_deteled': service.deleted_at}">
                                   <td>{{service.name}}</td>
-                                  <td>0</td>
+                                  <td style="text-align: center">0</td>
                                   <td>{{service.created_at | moment('D/MM/Y')}}</td>
                                   <td>
                                       <button @click.prevent="editDepartement(service.id)" class="btn btn-xs btn-success"><i class="fa fa-edit"></i></button>
@@ -209,13 +210,8 @@ export default {
       if (confirm("Êtes-vous sûr de vouloir supprimer ce departement ?")) {
         depService.delete_departement(id)
         .then(response => {
-          this.services.data.map((item, i) => {
-            if (item.id === response.data.id) {
-                this.services.data[i] = response.data
-            }
-          });
-          //console.log(this.services);
-          this.$toastr.success('Suppression du Département: '+response.data.name+' effecuté avec succès', 'SUPPRESSION')
+          this.$toastr.success('Suppression du Département: '+response.data.name+' effecuté avec succès', 'SUPPRESSION');
+          this.getResults();
         }).catch(error => console.log(error.response));
       }
     },
@@ -224,13 +220,9 @@ export default {
       if (confirm("Vous allez restorer ce Département qui avait été supprimé auparavant")) {
         depService.restore_deleted(id)
         .then(response => {
-            this.services.data.map((item,i) => {
-                if (item.id === response.data.id){
-                    this.services.data[i] = response.data;
-                }
-            });
             //console.log(this.services.data);
-            this.$toastr.success("Restoration de "+response.data.name+" effectuée avec succès.", "RESTORATION")
+            this.$toastr.success("Restoration de "+response.data.name+" effectuée avec succès.", "RESTORATION");
+            this.getResults();
         })
         .catch(error => this.$toastr.error('Erreur lors de la communication avec le serveur, rééssayer','ERREUR SERVEUR'));
       }

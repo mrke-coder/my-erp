@@ -18,6 +18,7 @@ Route::group(['prefix' => 'user'], function (){
         Route::group(['prefix'=>'rh'], function (){
             Route::resource('jobs','Rh\JobApplicationController')->middleware('scope:do_anyThings,can_create');
             Route::resource('employees','Rh\EmployeeController')->middleware('scope:do_anyThings,can_create');
+            Route::get('employeeDetails/{id}','Rh\RestoreDeleteController@employeeDetails')->middleware('scope:do_anyThings,can_create');
             Route::get('employees/{id}/delete','Rh\RestoreDeleteController@employee')->middleware('scope:do_anyThings');
             Route::get('wages/{id}/restore','Rh\RestoreDeleteController@wage')->middleware('scope:do_anyThings');
             Route::resource('bonuses','Rh\BonusController')->middleware('scope:do_anyThings,can_create');

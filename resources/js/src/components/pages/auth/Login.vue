@@ -91,7 +91,7 @@ export default {
                    }
                },3000);
             }catch (e) {
-                console.log(e)
+                console.log(e.response)
                 this.loading=false;
                 switch (e.response.status) {
                     case 401:

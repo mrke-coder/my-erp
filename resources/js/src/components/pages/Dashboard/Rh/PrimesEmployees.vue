@@ -14,13 +14,20 @@
                                 <table class="table table-striped" cellpadding="0" width="100%">
                                     <thead>
                                         <tr>
-                                            <td>EMPLOY&Eacute;</td>
-                                            <td>MONTANT</td>
-                                            <td>MOTIF</td>
-                                            <td>ACTIONS</td>
+                                            <th>EMPLOY&Eacute;</th>
+                                            <th>MONTANT</th>
+                                            <th>MOTIF</th>
+                                            <th>ACTIONS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                    <tr v-show="loading">
+                                        <td colspan="4">
+                                            <div class="d-flex justify-content-center mb-3">
+                                                <b-spinner variant="primary" label="Text Centered"></b-spinner>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     <tr v-for="bns in bonuses.data" :key="bns.bonus_id">
                                         <td>{{bns.firstName+' '+bns.lastName}}</td>
                                         <td>{{amountFormat(bns.amount)}}</td>
@@ -101,6 +108,7 @@
                 bonuses:{},
                 employees:{},
                 modalTitle: '',
+                loading: false,
                 bonus:{
                     id: '',
                     patterns: '',
@@ -137,8 +145,12 @@
             },
 
             getBonuses (page=1){
+                this.loading = true;
                 service.bonuses(page).then(response => {
-                    this.bonuses = response.data;
+                   setTimeout(() => {
+                       this.loading = false;
+                       this.bonuses = response.data;
+                   }, 2000)
                 })
                     .catch(e => console.log(e.response));
             },
@@ -205,7 +217,7 @@
                if(confirm("Voulez-vous vraiment supprimer ?")){
                    service.delete_bonus(id)
                        .then(response => {
-                           console.log(response);
+                           this.getBonuses();
                            this.$toastr.success("Suppression de la prime est effective","SUPPRESSION REUSSIE");
                        })
                        .catch(e => console.log(e.response));
@@ -216,7 +228,8 @@
                 if(confirm("Voulez-vous vraiment reccupérer ?")) {
                     service.restore_bonus(id)
                         .then(response => {
-                            this.$toastr.success(response.data, "OPERATION REUSSIE")
+                            this.$toastr.success(response.data, "OPERATION REUSSIE");
+                            this.getBonuses();
                         })
                         .catch(e => console.log(e.response));
                 }

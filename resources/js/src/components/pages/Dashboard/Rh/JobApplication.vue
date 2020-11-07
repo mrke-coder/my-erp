@@ -19,7 +19,14 @@
                                </tr>
                                </thead>
                                 <tbody>
-                                    <tr v-for="job in jobApplications" :key="job.id">
+                                <tr v-show="loading">
+                                    <td colspan="6">
+                                        <div class="d-flex justify-content-center mb-3">
+                                            <b-spinner variant="primary" label="Spinning"></b-spinner>
+                                        </div>
+                                    </td>
+                                </tr>
+                                    <tr v-for="job in jobApplications.data" :key="job.id">
                                         <td>{{job.request_type}}</td>
                                         <td>{{job.contract_type}}</td>
                                         <td>{{job.requested_position}}</td>
@@ -46,7 +53,8 @@
         name: "JobApplication",
         data (){
             return{
-                jobApplications:{}
+                jobApplications:{},
+                loading: false
             }
         },
         mounted() {
@@ -54,8 +62,12 @@
         },
         methods: {
             getJobApplications (page = 1){
+                this.loading = true;
                 service.jobApplications(page)
-                    .then(response => this.jobApplications = response.data);
+                    .then(response => {
+                        this.loading = false;
+                        this.jobApplications = response.data
+                    }, 2000);
             }
         }
     }

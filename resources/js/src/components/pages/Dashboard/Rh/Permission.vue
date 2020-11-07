@@ -11,7 +11,7 @@
                             </button>
                             <br><br>
                             <div class="table-responsive">
-                                <table class="table table-stripped" cellspacing="0" width="100%">
+                                <table class="table table-striped" cellspacing="0" width="100%">
                                     <thead>
                                         <tr>
                                             <th>EMPLO&Eacute;</th>
@@ -21,6 +21,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                    <tr v-show="loading">
+                                        <td colspan="6">
+                                            <div class="d-flex justify-content-center mb-3">
+                                                <b-spinner variant="primary" label="Spinning"></b-spinner>
+                                            </div>
+                                        </td>
+                                    </tr>
                                         <tr v-for="leave in permissions.data" :key="leave.leave_id" :class="{'is_deteled': leave.leave_deleted_at}">
                                             <td>{{leave.firstName+' '+leave.lastName}}</td>
                                             <td>{{leave.start | moment('D MMM YYYY')}}</td>
@@ -101,6 +108,7 @@
                 errors: '',
                 employees: {},
                 permissions:{},
+                loading: false,
                 permission: {
                     id: '',
                     leave_date: '',
@@ -132,9 +140,13 @@
             },
 
             getLeaves (page = 1) {
+                this.loading = true;
                 service.permissions(page)
                     .then(response => {
-                        this.permissions = response.data;
+                        setTimeout(() => {
+                            this.loading = false;
+                            this.permissions = response.data;
+                        });
                     })
                     .catch(e => console.log(e));
             },
@@ -200,7 +212,8 @@
                 if (confirm("Voulez-vous vraiment supprimer ?")){
                     service.delete_permission(id)
                         .then(response => {
-                            this.$toastr.success("La Permission a été supprimée avec succès","SUPPRESSION REUSSIE")
+                            this.$toastr.success("La Permission a été supprimée avec succès","SUPPRESSION REUSSIE");
+                            this.getLeaves();
                         })
                         .catch(e => {
                             this.$toastr.error("Quelque s'est mal passé lors de la suppression", "ERREUR SERVEUR");
@@ -213,7 +226,8 @@
                 if (confirm("Voulez-vous vraiment récuperer ?")){
                     service.restore_leave(id)
                         .then(response => {
-                            this.$toastr.success(response.data, "SUPPRESSION REUSSIE")
+                            this.$toastr.success(response.data, "SUPPRESSION REUSSIE");
+                            this.getLeaves();
                         })
                         .catch(e => this.$toastr.error("Quelques chose s'est mal passé !" ,"ERREUR SERVEUR"));
                 }

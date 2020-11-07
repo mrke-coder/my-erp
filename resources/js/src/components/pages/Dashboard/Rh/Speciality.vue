@@ -7,17 +7,20 @@
                 <div class="grid-body">
                     <div class="item-wrapper">
                         <button class="btn btn-primary" @click="showModal">
-                            <i class="fa fa-plus"></i> Nouvelle spécialité
+                            <i class="fa fa-plus"></i>&nbsp; Nouvelle spécialité
                         </button>
+                        <br><br>
                         <div class="table-responsive">
                             <table class="table table-striped" width="100%">
                                 <thead>
                                 <tr>
-                                    <td>SPECIALITE</td>
-                                    <td>DEPARTEMENT</td>
-                                    <td>CREE LE</td>
-                                    <td>ACTIONS</td>
+                                    <th>SPECIALITE</th>
+                                    <th>DEPARTEMENT</th>
+                                    <th>CREE LE</th>
+                                    <th>ACTIONS</th>
                                 </tr>
+                                </thead>
+                                <tbody>
                                 <tr v-show="loading">
                                     <td colspan="4">
                                         <div class="d-flex justify-content-center mb-3" variant="primary">
@@ -35,8 +38,6 @@
                                         <button type="button" class="btn btn-sm btn-warning" @click.prevent="onRestore(speciality.id)" v-show="speciality.deleted_at"><i class="fa fa-refresh"></i></button>
                                     </td>
                                 </tr>
-                                </thead>
-                                <tbody>
                                 </tbody>
                             </table>
                             <pagination :data="specialities" @pagination-change-page="loadSpecilities">
@@ -236,7 +237,7 @@ export default {
            try {
                const response = await service.delete_speciality(id);
                this.$toastr.success(response.data, 'SUPPRESSION');
-               this.specialities.data.filter(el => el.id !== id)
+               this.loadSpecilities();
            }catch (e) {
                console.log(e.response)
            }
@@ -250,6 +251,7 @@ export default {
                     this.$toastr.success(`
                     La spécialité : <b style="color: red">${response.data.name}</b> a été restorée avec succès
                     `,"RECCUPERATION DE SUPPRESSION");
+                    this.loadSpecilities();
                 })
                 .catch(e => console.log(e.response));
         }

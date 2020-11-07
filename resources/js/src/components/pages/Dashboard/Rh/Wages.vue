@@ -11,7 +11,7 @@
                             </button>
                             <br><br>
                             <div class="table-responsive">
-                                <table class="table" width="100%" cellpadding="0">
+                                <table class="table table-striped" width="100%" cellpadding="0">
                                     <thead>
                                         <tr>
                                             <th>EMPLOYE</th>
@@ -20,6 +20,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <tr v-show="loading">
+                                            <td colspan="3">
+                                                <div class="d-flex justify-content-center mb-3">
+                                                    <b-spinner variant="primary" label="Text Centered"></b-spinner>
+                                                </div>
+                                            </td>
+                                        </tr>
                                         <tr v-for="wage in wages.data" :key="wage.wage_id" :class="{'is_deteled':wage.deleted_at}">
                                             <td>{{wage.firstName+' '+wage.lastName}}</td>
                                             <td>{{amountFormat(wage.amount)}}</td>
@@ -87,6 +94,7 @@
                 modalTitle:'',
                 employees: [],
                 wages:{},
+                loading: false,
                 wage:{
                     id:'',
                     amount:0,
@@ -127,8 +135,14 @@
             },
 
             getWages (page=1){
+                this.loading = true;
                 service.wages(page)
-                    .then(response => this.wages = response.data)
+                    .then(response => {
+                        setTimeout(() => {
+                            this.loading = false;
+                            this.wages = response.data
+                        }, 2000)
+                    })
                     .catch(e => console.log(e.response));
             } ,
 
@@ -187,6 +201,7 @@
                     service.delete_wage(id)
                         .then(response => {
                             this.$toastr.success(response.data,"SUPPRESSION REUSSIE");
+                            this.getWages();
                         })
                         .catch(e => console.log(e.response))
                 }
@@ -196,7 +211,8 @@
                 if (confirm("Voulez-vous vraiment restorer cette suppression ?")){
                     service.restore_wage(id)
                         .then(response => {
-                            this.$toastr.success(response.data,"RECCUPERATION REUSSIE")
+                            this.$toastr.success(response.data,"RECCUPERATION REUSSIE");
+                            this.getWages();
                         })
                         .catch(e => console.log(e.response))
                 }

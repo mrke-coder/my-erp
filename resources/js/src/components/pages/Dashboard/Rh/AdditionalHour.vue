@@ -19,6 +19,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <tr v-show="loading">
+                                            <td colspan="6">
+                                                <div class="d-flex justify-content-center mb-3">
+                                                    <b-spinner variant="primary" label="Spinning"></b-spinner>
+                                                </div>
+                                            </td>
+                                        </tr>
                                         <tr v-for="add_h in addhours.data" :key="add_h.add_hour_id" :class="{'is_deteled':add_h.add_hour_deleted_at}">
                                             <td>{{add_h.firstName+' '+add_h.lastName}}</td>
                                             <td></td>
@@ -112,6 +119,7 @@
                 modalTitle: '',
                 h_1: '',
                 h_2: '',
+                loading: false,
                 addHour: {
                     id: '',
                     start: '',
@@ -129,6 +137,7 @@
             this.getAdditionalHours();
         },
         methods:{
+
             showModal (){
                 this.addHour = {};
                 this.h_1 = '';
@@ -146,9 +155,13 @@
             },
 
             getAdditionalHours (page = 1) {
+                this.loading = true;
                 service.add_hours(page)
                     .then(response => {
-                        this.addhours = response.data
+                        setTimeout(() => {
+                            this.loading = false;
+                            this.addhours = response.data
+                        }, 2000);
                     })
             },
 
@@ -227,7 +240,10 @@
             onDelete (id) {
                 if (confirm("Voulez-vous vraiment supprimer ?")){
                     service.delete_add_hour(id)
-                        .then(response => this.$toastr.success(response.data, "SUPPRESSION EFFECTIVE"))
+                        .then(response => {
+                            this.getAdditionalHours();
+                            this.$toastr.success(response.data, "SUPPRESSION EFFECTIVE")
+                        })
                         .catch(e => console.log(e.response));
                 }
             },
@@ -235,7 +251,10 @@
             onRestore (id) {
                 if (confirm("Voulez-vous vraiment réccuperer ?")){
                     service.restore_add_hour(id)
-                        .then(response => this.$toastr.success(response.data, "RECCUPERATION REUSSIE"))
+                        .then(response => {
+                            this.getAdditionalHours();
+                            this.$toastr.success(response.data, "RECCUPERATION REUSSIE")
+                        })
                         .catch(e => console.log(e.response));
                 }
             }

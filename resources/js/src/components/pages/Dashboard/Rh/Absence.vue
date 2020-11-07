@@ -25,7 +25,7 @@
                                     <tbody>
                                         <tr v-show="loading">
                                             <td colspan="6">
-                                                <div class="text-center">
+                                                <div class="d-flex justify-content-center mb-3">
                                                     <b-spinner variant="primary" label="Spinning"></b-spinner>
                                                 </div>
                                             </td>
@@ -242,7 +242,7 @@
                 if (confirm("Voulez-vous vraiment supprimer ?")){
                     service.absence(id)
                         .then(response => {
-                            console.log(response.data);
+                            this.getAbsences();
                             this.$toastr.success('Suppression de l\'absence a été effectuée avec succès', "SUPPRESSION REUSSIE");
                         })
                         .catch(e => console.log(e.response));

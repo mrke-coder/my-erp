@@ -21,6 +21,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr v-show="loading">
+                                        <td colspan="6">
+                                            <div class="d-flex justify-content-center mb-3">
+                                                <b-spinner variant="primary" label="Spinning"></b-spinner>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     <tr v-for="training in trainings.data" :key="training.training_id" :class="{'is_deteled':training.training_deleted_at}">
                                         <td>{{training.firstName+' '+training.lastName}}</td>
                                         <td>{{training.type}}</td>
@@ -132,8 +139,12 @@
             },
 
             getTrainings(page = 1) {
+                this.loading = true;
                 service.trainings(page)
-                    .then(response => this.trainings = response.data);
+                    .then(response => {
+                        this.loading = false;
+                        this.trainings = response.data
+                    });
             },
 
             onSubmit: async function () {
@@ -200,7 +211,10 @@
             onDelete (id) {
                 if (confirm("Voulez-vous vraiement supprimer ?")){
                     service.delete_training(id)
-                        .then(response => this.$toastr.success(response.data, "SUPPRESSION REUSSIE"))
+                        .then(response => {
+                            this.$toastr.success(response.data, "SUPPRESSION REUSSIE")
+                            this.getTrainings();
+                        })
                         .catch(e => {
                             console.log(e.response);
                             this.$toastr.error(e.response.data, "ERREUR")
@@ -211,7 +225,10 @@
             onRestore (id) {
                 if (confirm("Voulez-vous vraiement réccuperer ?")){
                     service.restore_training(id)
-                        .then(response => this.$toastr.success(response.data, "DONN&Eacute;E RESTOR&Eacute;"))
+                        .then(response => {
+                            this.$toastr.success(response.data, "DONN&Eacute;E RESTOR&Eacute;");
+                            this.getTrainings();
+                        })
                         .catch(e => {
                             console.log(e.response);
                             this.$toastr.error(e.response.data, "ERREUR")

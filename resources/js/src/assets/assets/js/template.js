@@ -20,7 +20,6 @@ var TemplateHeader = $('.t-header');
 var PageContentWrapper = $(".page-content-wrapper");
 var DesktopToggler = $(".t-header-desk-toggler");
 var MobileToggler = $(".t-header-mobile-toggler");
-
 // SIDEBAR TOGGLE FUNCTION FOR MOBILE (SCREEN "MD" AND DOWN)
 MobileToggler.on("click", function () {
   $(".page-body").toggleClass("sidebar-collpased");

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Rh;
 
 use App\Http\Controllers\Controller;
+use App\Models\RH\Absence;
 use App\Models\RH\AdditionalHour;
 use App\Models\RH\Bonus;
 use App\Models\RH\Department;
@@ -13,8 +14,6 @@ use App\Models\RH\Leave;
 use App\Models\RH\Speciality;
 use App\Models\RH\Training;
 use App\Models\RH\Wage;
-use App\User;
-use Illuminate\Http\Request;
 
 class RestoreDeleteController extends Controller
 {
@@ -149,5 +148,41 @@ class RestoreDeleteController extends Controller
         }
 
         return response()->json($data);
+    }
+
+    public function employeeDetails(int $id)
+    {
+        $employee = Employee::find($id);
+        $absence = Absence::query()->where('employee_id','=',$employee->id)->get();
+        $addH = AdditionalHour::query()->where('employee_id','=',$employee->id)->get();
+        $bonuses = Bonus::query()->where('employee_id','=',$employee->id)->get();
+        $departure = Departure::query()->where('employee_id','=',$employee->id)->first();
+        $displacement = Displacement::query()->where('employee_id','=',$employee->id)->get();
+        $leaves = Leave::query()->where('employee_id','=',$employee->id)->get();
+
+        $speciality = Speciality::query()
+            ->join('employees','specialities.id','=','employees.speciality_id')
+            ->select('specialities.*')
+            ->where('employees.id','=',$employee->id)->first();
+
+        $department = Department::query()
+            ->join('specialities','specialities.department_id','=','departments.id')
+            ->join('employees','specialities.id','=','employees.speciality_id')
+            ->select('departments.*')
+            ->where('employees.id','=',$employee->id)->first();
+
+        return response()->json(
+            [
+                'employee' => $employee,
+                'absences' => $absence,
+                'addHours' => $addH,
+                'bonuses' => $bonuses,
+                'department' => $department,
+                'departure' => $departure,
+                'displacements' => $displacement,
+                'leaves' => $leaves,
+                'speciality' => $speciality
+            ]
+        );
     }
 }

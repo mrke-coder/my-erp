@@ -25,7 +25,7 @@
                                 <tbody>
                                     <tr v-show="loading">
                                         <td colspan="7">
-                                            <div class="text-center">
+                                            <div class="d-flex justify-content-center mb-3">
                                                 <b-spinner variant="primary" label="Spinning"></b-spinner>
                                             </div>
                                         </td>
@@ -248,7 +248,10 @@
             onDelete (id) {
                 if (confirm("Êtes-vous sûr de vouloir supprimer ?")){
                     service.delete_displacement(id)
-                        .then(response => this.$toastr.success(response.data))
+                        .then(response => {
+                            this.$toastr.success(response.data);
+                            this.getDisplacements();
+                        })
                         .catch(e => console.log(e.response));
                 }
             },
@@ -256,7 +259,10 @@
             onRestore (id) {
                 if (confirm("Êtes-vous sûr de vouloir restorer ?")){
                     service.restore_displacement(id)
-                        .then(response => this.$toastr.success(response.data, "RECCUPERATION REUSSIE"))
+                        .then(response => {
+                            this.$toastr.success(response.data, "RECCUPERATION REUSSIE");
+                            this.getDisplacements();
+                        })
                         .catch(e => console.log(e.response));
                 }
             }

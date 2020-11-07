@@ -199,6 +199,12 @@ export default {
         }, 500);
         this.verifySession();
         //console.log(this.$store.state.profile.roles)
+        $(function () {
+            $(".t-header-mobile-toggler")
+                .on('click', function () {
+                    $(".page-body").toggleClass("sidebar-collpased");
+                });
+        });
     },
     methods: {
         selectLanguage(code) {

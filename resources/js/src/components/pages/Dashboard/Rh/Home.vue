@@ -14,7 +14,7 @@
                             <p></p>
                             <p></p>
                         </div>
-                        <p class="text-black">EMPLOYES</p>
+                        <p class="text-black">DEPARTEMENTS</p>
                         <div class="wrapper w-50 mt-4">
                             <canvas height="45" id="stat-line_1"></canvas>
                         </div>
@@ -28,7 +28,7 @@
                             <p></p>
                             <p></p>
                         </div>
-                        <p class="text-black">EMPLOYES</p>
+                        <p class="text-black">SPACIALITE</p>
                         <div class="wrapper w-50 mt-4">
                             <canvas height="45" id="stat-line_2"></canvas>
                         </div>
@@ -58,7 +58,9 @@
                         </div>
                         <p class="text-black">EMPLOYES</p>
                         <div class="wrapper w-50 mt-4">
-                            <canvas height="45" id="stat-line_4"></canvas>
+                            <canvas height="45" id="stat-line_4">
+
+                            </canvas>
                         </div>
                     </div>
                 </div>

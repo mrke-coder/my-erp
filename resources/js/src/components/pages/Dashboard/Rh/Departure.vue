@@ -206,7 +206,10 @@
             onDelete (id) {
                 if (confirm("Voulez-vous vraiment supprimer ?")) {
                     service.delete_departure(id)
-                        .then(response => this.$toastr.success(response.data, "SUPPRESSION REUSSIE"))
+                        .then(response => {
+                            this.$toastr.success(response.data, "SUPPRESSION REUSSIE");
+                            this.getDepartures();
+                        })
                         .catch(e => console.log(e.response));
                 }
             },
@@ -214,7 +217,10 @@
             onRestore (id) {
                 if (confirm("Voulez-vous vraiment réccuprérer ?")) {
                     service.restore_departure(id)
-                        .then(response => this.$toastr.success(response.data, "RECCUPERATION REUSSIE"))
+                        .then(response => {
+                            this.$toastr.success(response.data, "RECCUPERATION REUSSIE");
+                            this.getDepartures();
+                        })
                         .catch(e => console.log(e.response));
                 }
             }

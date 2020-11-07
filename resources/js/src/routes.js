@@ -80,9 +80,9 @@ export default {
                                     component: Employee
                                 },
                                 {
-                                    path:'/dashboard/admin/rh/employes/:id/informations',
-                                    name: 'EmployDetails',
-                                    component: EmployeeInfos
+                                  path: '/dashboard/admin/rh/employes/:id/informations/:page',
+                                  name: 'EmployDetailsPage',
+                                  component: EmployeeInfos
                                 },
                                 {
                                     path: "/dashboard/admin/rh/salaires",

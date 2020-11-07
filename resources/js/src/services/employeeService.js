@@ -27,3 +27,7 @@ export const delete_employee = (id) => {
 export const restore_employee = (id) => {
     return http().get('rh/employees/'+id+'/delete');
 };
+
+export const details_employee = (id) => {
+    return http().get('rh/employeeDetails/'+id);
+};

@@ -14,19 +14,19 @@
                                 <table class="table table-striped" cellspacing="0" width="100%">
                                     <thead>
                                     <tr>
-                                        <td>EMPLOYE</td>
-                                        <td>PROFESSION</td>
-                                        <td>EMBAUCHER LE</td>
-                                        <td>ADRESSE</td>
-                                        <td>CONTACT</td>
-                                        <td>ENREGISTRER LE</td>
-                                        <td>ACTION</td>
+                                        <th>EMPLOYE</th>
+                                        <th>PROFESSION</th>
+                                        <th>EMBAUCHER LE</th>
+                                        <th>ADRESSE</th>
+                                        <th>CONTACT</th>
+                                        <th>ENREGISTRER LE</th>
+                                        <th>ACTION</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <tr v-show="loading">
                                         <td colspan="8">
-                                            <div class="text-center">
+                                            <div class="d-flex justify-content-center mb-3">
                                                 <b-spinner variant="primary" label="Text Centered"></b-spinner>
                                             </div>
                                         </td>
@@ -337,12 +337,7 @@
                     service.delete_employee(id)
                         .then(response =>{
                             this.$toastr.success(response.data.message,"SUPPRESSION REUSSION");
-                            console.log(response.data.data)
-                            this.employees.data.map((el,i) => {
-                                if (el.id === id){
-                                    this.employees.data[i] = response.data.data
-                                }
-                            })
+                            this.getEmployees();
                         })
                         .catch(error => console.log(error.response));
                 }
@@ -353,6 +348,7 @@
                     try {
                         const response = await service.restore_employee(id);
                         this.$toastr.success(response.data,"RECCUPERATION REUSSIE");
+                        this.getEmployees();
                     }catch (e) {
                         if (e.response.status === 500){
                             this.$toastr.error("Erreur lors de la connexion au serveur, rééssayer ultérieurement","ERREUR SERVEUR");
@@ -364,7 +360,7 @@
             },
 
             employee_informations(id) {
-                this.$router.push({ path: `/dashboard/admin/rh/employes/${id}/informations`});
+                this.$router.push({ path: `/dashboard/admin/rh/employes/${id}/informations/informations-publiques`});
             }
         }
     }
