@@ -205,6 +205,7 @@ export default {
                     $(".page-body").toggleClass("sidebar-collpased");
                 });
         });
+
     },
     methods: {
         selectLanguage(code) {

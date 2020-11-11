@@ -31,7 +31,7 @@ export default new Vuex.Store({
     actions: {
         authenticate (context, payload){
             context.commit('authenticate', payload);
-        },
+        }
     },
     getters: {}
 });

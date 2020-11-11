@@ -43,6 +43,7 @@
 
 <script>
 import * as authService from "../../../services/authService"
+import * as auth from "../../../services/authService";
 export default {
     name: "Login",
     created() {
@@ -80,6 +81,9 @@ export default {
               const response = await authService.login(this.user);
               this.$toastr.success("Authentification réussie, redirection en cours...", 'Authenfié !')
                setTimeout(() => {
+                   if (auth.isLoggedIn()){
+                       localStorage.setItem('connected_at',this.$moment().add(15,'minute'));
+                   }
                    this.loading = false
                    if (response.token_scope ==="do_anyThings"){
                        this.$router.push('/dashboard/admin');
@@ -118,4 +122,14 @@ export default {
         color: #696ffb;
         cursor: pointer;
     }
+    /*@keyframes turn_logo {
+        0%{transform: rotate(0turn)}
+        50%{transform: rotate(.5turn)}
+        100%{transform: rotate(.9turn)}
+    }
+
+    .logo-section img {
+        animation: turn_logo 2s infinite;
+    }*/
+
 </style>

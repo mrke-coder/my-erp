@@ -13,6 +13,24 @@ export default {
           this.$store.state.profile = response.data;
          // console.log(this.$store.state.profile)
       }).catch(e => console.log(e.response))
+    },
+    updated() {
+      this.verifySessionDuration();
+    },
+    methods:{
+      verifySessionDuration () {
+          if (auth.isLoggedIn()){
+              let date_connected = localStorage.getItem('connected_at');
+              let now_date = this.$moment().format();
+              if (date_connected > now_date){
+                  localStorage.setItem('connected_at',this.$moment().add(15,'minute'));
+              } else{
+                  auth.logout();
+                  this.$router.push('/')
+                  this.$toastr.error("Le temps maximum d'inactivité est atteint, veuillez-vous reconnecter", "DELAI DEPASSE;");
+              }
+          }
+      }
     }
 }
 </script>

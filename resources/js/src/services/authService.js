@@ -40,5 +40,6 @@ export const logout = () => {
     http().get('logout');
     localStorage.removeItem('loggedInUser');
     localStorage.removeItem('isRefresh');
+    localStorage.removeItem('connected_at');
 }
 

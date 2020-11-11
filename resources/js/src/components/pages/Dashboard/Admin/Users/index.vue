@@ -30,14 +30,17 @@
                                   </div>
                               </td>
                           </tr>
-                          <tr v-for="user in users.data" :key="user.id">
+                          <tr v-for="user in users.data" :key="user.id" v-show="user.id !== $store.state.profile.user.id">
                               <td class="d-flex align-items-center border-top-0">
                                   <img class="profile-img img-sm img-rounded mr-2" :src="user.avatar" alt="profile image">
                                   <span>{{user.firstName}} {{user.lastName}}</span>
                               </td>
                               <td>
-                                  <label class="badge badge-danger" :class="'ui '+role.role" v-for="role in roles" :key="role.id" v-if="role.user_id === user.id">
-                                      {{role.role}}
+                                  <label class="badge badge-danger"
+                                         :class="'ui '+createUserRoleClass(role.role)"
+                                         v-for="role in roles" :key="role.id"
+                                         v-if="role.user_id === user.id">
+                                            {{role.role}}
                                       <i class="mdi mdi-close"  style="cursor: pointer"></i>
                                   </label>
                               </td>
@@ -64,7 +67,7 @@
       </div>
         <!--- formulaire insertion d'utilisateur-->
       <b-modal id="userModal" size="lg" title="Modal with Popover" hide-footer>
-          <form @submit.prevent="register" class="container" id="form-user" autocomplete="off" v-show="addFom">
+          <form class="container" id="form-user" autocomplete="off">
               <div class="row">
                   <div class="col-md-4 mb-3">
                       <label for="email">
@@ -73,7 +76,7 @@
                       </label>
                       <input
                           type="email"
-                          v-model="newUser.email"
+                          v-model="user.email"
                           id="email"
                           class="form-control"
                           :class="{'is-invalid':errors.email}"
@@ -88,7 +91,7 @@
                       </label>
                       <input
                           type="password"
-                          v-model="newUser.password"
+                          v-model="user.password"
                           id="password"
                           class="form-control"
                           :class="{'is-invalid':errors.password}"
@@ -103,7 +106,7 @@
                       </label>
                       <input
                           type="password"
-                          v-model="newUser.password_confirmation"
+                          v-model="user.password_confirmation"
                           id="password_confirmation"
                           class="form-control"
                           placeholder="Répéter le mot de passe"
@@ -116,7 +119,7 @@
                       </label>
                       <input
                           type="text"
-                          v-model="newUser.firstName"
+                          v-model="user.firstName"
                           class="form-control"
                           :class="{'is-invalid':errors.firstName}"
                           id="firstNAme"
@@ -128,7 +131,7 @@
                       <label for="lastName">Nom De Famille</label>
                       <input
                           type="text"
-                          v-model="newUser.lastName"
+                          v-model="user.lastName"
                           class="form-control"
                           id="lastName"
                           placeholder="Entrer Nom De Famille"
@@ -138,71 +141,26 @@
                       <label class="typo__label" for="role">Role de l'utilisateur</label>
                       <div class="form-group row">
                           <div class="form-check" v-for="role in roleData" :key="role.id">
-                              <label class="form-check-label">
-                                  <input class="form-check-input" id="role" :class="{'is-invalid':errors.role}" v-model="newUser.role" :value="role.id" type="checkbox"> {{role.role}}&nbsp;
+                              <label class="form-check-label" v-show="role.role !== 'administrator'">
+                                  <input class="form-check-input"
+                                         id="role" :class="{'is-invalid':errors.role}"
+                                         v-model="user.role" :value="role.id"
+                                         type="checkbox"> {{role.role}}&nbsp;
                               </label>
                           </div>
                           <div class="invalid__form" v-if="errors.role">{{errors.role[0]}}</div>
                       </div>
                   </div>
               </div>
-              <button class="btn btn-danger" type="reset">
-                  <i class="fa fa-close"></i> Annuler
+              <button class="btn btn-danger" type="reset" @click.prevent="hideModal">
+                  <i class="fa fa-close"></i>&nbsp; Annuler
+              </button>&nbsp;
+              <button class="btn btn-success" @click.prevent="register"  v-show="!editing">
+                  <i class="fa fa-check-circle"></i>&nbsp; Sauvegarder
+              </button>&nbsp;
+              <button class="btn btn-warning" type="submit" @click.prevent="update"  v-show="editing">
+                  <i class="fa fa-check-circle"></i>&nbsp; Modifier
               </button>
-              <button class="btn btn-success" type="button" disabled v-show="submitted">
-                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  Envoie en cours...
-              </button>
-              <button class="btn btn-success" type="submit" v-show="!submitted">
-                  <i class="fa fa-check-circle"></i> Sauvegarder
-              </button>
-          </form>
-          <form @submit.prevent="update" class="container" id="user_id_form" autocomplete="off" v-show="editForm">
-              <input type="hidden" v-model="user.user_id" />
-              <div class="row">
-                  <div class="col-lg-4 col-sm-12">
-                      <div class="form-group">
-                          <label>Adresse Email</label>
-                          <input type="email" class="form-control" :class="{'is-invalid':errors.email}" v-model="user.email" placeholder="Entrer Adresse Email"/>
-                          <div class="invalid-feedback" v-if="errors.email">{{errors.email[0]}}</div>
-                      </div>
-                  </div>
-                  <div class="col-lg-4 col-sm-12">
-                      <div class="form-group">
-                          <label>Mot De Passe</label>
-                          <input type="password" class="form-control" :class="{'is-invalid':errors.password}" v-model="user.password" placeholder="Entrer Mot De Passe"/>
-                          <div class="invalid-feedback" v-if="errors.password">{{errors.password[0]}}</div>
-                      </div>
-                  </div>
-                  <div class="col-lg-4 col-sm-12">
-                      <div class="form-group">
-                          <label>Mot De Passe</label>
-                          <input type="password" class="form-control" v-model="user.password_confirmation" placeholder="Répéter Le Mot De Passe"/>
-                      </div>
-                  </div>
-                  <div class="col-lg-6 col-sm-12">
-                      <div class="form-group">
-                          <label>Prénoms</label>
-                          <input type="text" class="form-control" :class="{'is-invalid':errors.firstName}" v-model="user.firstName" placeholder="Entrer Prénom"/>
-                          <div class="invalid-feedback" v-if="errors.firstName">{{errors.firstName[0]}}</div>
-                      </div>
-                  </div>
-                  <div class="col-lg-6 col-sm-12">
-                      <div class="form-group">
-                          <label>Nom De Famille</label>
-                          <input type="text" class="form-control" :class="{'is-invalid':errors.lastName}" v-model="user.lastName" placeholder="Entrer Nom De Famille"/>
-                          <div class="invalid-feedback" v-if="errors.lastName">{{errors.lastName[0]}}</div>
-                      </div>
-                  </div>
-              </div>
-              <div class="form-group">
-                  <button class="btn btn-danger" type="reset" @click="hideModal"><i class="fa fa-close"></i> Annuler</button>
-                  <button class="btn btn-success" type="button" disabled v-show="submitted">
-                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                      Envoie en cours...
-                  </button>
-                  <button class="btn btn-warning" type="submit" v-show="!submitted"><i class="fa fa-check-circle" ></i> Modifier maintenant</button>
-              </div>
           </form>
       </b-modal>
   </div>
@@ -217,6 +175,7 @@ export default {
       users: [],
       roles: [],
       load: false,
+      editing: false,
       isLoading: false,
       submitted: false,
       roleData: [],
@@ -229,18 +188,9 @@ export default {
           password: '',
           password_confirmation: '',
           firstName: '',
-          lastName: ''
-      },
-      newUser: {
-        firstName: "",
-        role:[],
-        lastName: "",
-        email: "",
-        password: "",
-        password_confirmation: "",
-      },
-        addFom: false,
-        editForm: false
+          lastName: '',
+          role:[]
+      }
     };
   },
   created() {
@@ -267,37 +217,44 @@ export default {
   },
   methods: {
     addUser() {
-        this.$bvModal.show('userModal')
-      this.addFom=true
-        this.editForm = false
+      this.$bvModal.show('userModal');
+      this.editing = false;
     },
     hideModal(){
-        this.$bvModal.hide('userModal')
+        this.$bvModal.hide('userModal');
+        this.editing = false;
+    },
+    createUserRoleClass(role){
+        const data = role.split(' ');
+        let classData='';
+        data.map(el => {
+            if (el !== 'administrator'){
+                classData += el.substr(0,1);
+            } else {
+                classData = 'admin'
+            }
+        });
+
+        return classData;
     },
    editUser: async function(id){
+        this.editing = true;
        try {
            const response = await userService.user(id);
-           console.log(response.data)
                this.user = response.data
                this.$bvModal.show('userModal')
-               this.editForm = true;
-               this.addFom =false
        } catch (e) {
            console.log(e.response)
        }
    },
     register: async function () {
-      this.submitted = true;
       try {
-        this.submitted = false;
-        const response = await userService.register(this.newUser);
-          if(response.status === 200){
-              this.$toastr.success("Utilisateur enregistré avec succès");
-          }
+        const response = await userService.register(this.user);
+          this.$toastr.success("Utilisateur enregistré avec succès", "SAUVEGARDE REUSSIE");
           this.hideModal();
-          this.users.push(response.data.user[0])
+          this.users.data.unshift(response.data.user[0])
           response.data.roles.forEach(role => {
-               this.roles.push(role);
+               this.roles.unshift(role);
           });
 
       } catch (e) {
@@ -310,16 +267,17 @@ export default {
       }
     },
     update: async function (){
-        this.submitted = true;
        try {
           const response = await userService.update(this.user);
           //console.log(response)
-          this.submitted = false;
            this.hideModal();
-           this.users.push(response.data)
-           this.$toastr("Utilisateur Modifié avec succès !");
+           this.users.data.map((el, i) => {
+               if (el.id === response.data.id){
+                   this.users.data[i] = response.data;
+               }
+           });
+           this.$toastr("Utilisateur Modifié avec succès !", "MODIFICATION REUSSIE");
        }catch (e) {
-           this.submitted = false
            switch (e.response.status) {
                case 422:
                    this.errors = e.response.data;
@@ -344,14 +302,19 @@ span.ui {
   color: white;
   padding: 5px;
 }
-span.ui.administrator {
-  background-color: #f44336;
-  border-color: #f44336;
+label.badge.ui.admin {
+  background-color: #DB504A !important;
+  border-color: #DB504A !important;
 }
 
-span.ui.user {
-  background-color: #4caf50;
-  border-color: #4caf50;
+label.badge.badge-danger.ui.hr {
+  background-color: #4caf50 !important;
+  border-color: #4caf50 !important;
+}
+
+label.badge.badge-danger.ui.gs{
+    background-color: #857bff !important;
+    border-color: #857bff !important;
 }
 .requis {
   color: red;
