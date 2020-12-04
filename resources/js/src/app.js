@@ -15,6 +15,7 @@ import './styles/global.css';
 import 'semantic-ui-css/semantic.min.css';
 import './plugins/script'
 
+
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 Vue.use(VueAxios, axios);
@@ -40,7 +41,15 @@ Vue.use(require('vue-moment'),{
 });
 
 window.toastr = require('toastr');
-Vue.use(vueToastr2);
+Vue.use(vueToastr2, {
+  defaultTimeout: 5000,
+  defaultProgressBar: true,
+  defaultProgressBarValue: 0,
+  defaultPosition: "toast-top-center",
+  defaultCloseOnHover: false,
+  //defaultStyle: { "background-color": "red" },
+  defaultClassNames: ["animated", "zoomInUp"]
+});
 Vue.component('multiselect', Multiselect);
 Vue.config.productionTip = false;
 Vue.component('pagination', require('laravel-vue-pagination'));
@@ -52,3 +61,5 @@ new Vue({
   components: { App },
   template: '<App/>',
 });
+
+

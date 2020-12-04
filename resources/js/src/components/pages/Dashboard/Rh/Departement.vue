@@ -1,18 +1,5 @@
 <template>
   <div class="departement">
-  <div class="viewport-header">
-      <nav aria-label="breadcrumb">
-          <ol class="breadcrumb has-arrow">
-              <li class="breadcrumb-item">
-                  <router-link to="/dashboard/admin/rh" exact>Dashboard</router-link>
-              </li>
-              <li class="breadcrumb-item">
-                  <router-link to="#" exact>admin</router-link>
-              </li>
-              <li class="breadcrumb-item active" aria-current="page">Départements</li>
-          </ol>
-      </nav>
-  </div>
   <div class="row">
       <div class="col-lg-12 equel-grid">
           <div class="grid">
@@ -129,6 +116,7 @@ export default {
   mounted(){
     this.getResults();
     //console.log(this.services)
+    this.$store.state.pageName ="Départements";
   },
   methods:{
 

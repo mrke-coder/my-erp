@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-12 py-5">
                 <h4>Dashboard</h4>
-                <p class="text-gray" >Bienvenue à bord, {{$store.state.profile.user.firstName+' '+$store.state.profile.user.lastName}}</p>
+                <p class="text-gray" >Bienvenue à bord, {{$store.state.userProfile.firstName+' '+$store.state.userProfile.lastName}}</p>
             </div>
         </div>
         <div class="row">
@@ -71,7 +71,10 @@
 
 <script>
     export default {
-        name: "Home"
+        name: "Home",
+        mounted (){
+            this.$store.state.pageName ="Ressources Humaines - Accueil";
+        }
     }
 </script>
 

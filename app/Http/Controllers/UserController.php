@@ -59,7 +59,7 @@ class UserController extends Controller
                     ->join('administrators', 'users.id', '=', 'administrators.user_id')
                     ->select('users.*','administrators.*')
                     ->where('users.id','=',$user->id)
-                    ->get();
+                    ->first();
               for ($i=0; $i <count($request->role) ; $i++) {
                     UserRole::create([
                         'user_id' => $user->id,
@@ -103,10 +103,11 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => ['required','string','email',Rule::unique('users')->ignore($request->user_id)],
-            'password' => ['required','confirmed'],
+            'password' => $request->ex_password ? '' : ['required','confirmed'],
             'firstName' => ['required'],
             'lastName' => ['required']
         ]);
+
 
         if ($validator->fails()){
             return response()->json($validator->errors(),422);
@@ -114,7 +115,10 @@ class UserController extends Controller
 
         $user = User::find($request->user_id);
         $user->email = $request->email;
-        $user->password = Hash::make($request->password);
+
+        if($request->ex_password === null) {
+            $user->password = Hash::make($request->password);
+        }
 
         if ($user->save()){
             $admin = Administrator::query()->select('*')->where('user_id','=',$request->user_id)->first();
@@ -123,7 +127,8 @@ class UserController extends Controller
             $admin->save();
 
             $data = User::query()->join('administrators','users.id','=','administrators.user_id')
-                ->where('users.id','=',$request->user_id);
+                ->select('users.*','administrators.*')
+                ->where('users.id','=',$request->user_id)->first();
 
             return response()->json($data);
         }
@@ -137,6 +142,62 @@ class UserController extends Controller
         if ($user->save()){
             return response()->json($user);
         }
+    }
+
+    public function addRole (Request $request) {
+        $validator = Validator::make($request->all(), [
+            'role' => ['required']
+        ]);
+
+        if($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $rolesU = UserRole::query()->where('user_id','=',$request->user_id)->get();
+        $roles = Role::query()
+        ->join('user_role','roles.id','=','user_role.role_id')
+        ->get();
+
+        $redondance = 0;
+        $result = [];
+        $rolesUpdate =[];
+
+
+           if(count($rolesU) > 0){
+            foreach($rolesU as $_role){
+                for($i=0; $i <count($request->role); $i++){
+                    if($_role->role_id == $request->role[$i]){
+                        $redondance += 1 ;
+                    } else{
+                        $result[] = UserRole::create([
+                            'user_id' => $request->user_id,
+                            'role_id' => $request->role[$i]
+                        ]);
+                    }
+                }
+            }
+           } else {
+            for($i=0; $i <count($request->role); $i++){
+                $result[] = UserRole::create([
+                    'user_id' => $request->user_id,
+                    'role_id' => $request->role[$i]
+                ]);
+            }
+         }
+
+
+        foreach($roles as $value) {
+           foreach($result as $rslt){
+               if($value->id === $rslt->role_id){
+                $rolesUpdate[] = $value;
+               }
+           }
+        }
+
+    return response()->json([
+            'nb_ignored' => $redondance,
+            'data' => $rolesUpdate
+        ]);
     }
 
 }

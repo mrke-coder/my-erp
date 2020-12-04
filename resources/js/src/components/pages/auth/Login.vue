@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-12 logo-section">
                 <a href="javascript:void(0)" class="logo">
-                    <img src="../../../assets/logo.png" alt="logo" />
+                    <img src="../../../assets/logo.png" class="login-logo" alt="logo" />
                 </a>
             </div>
         </div>
@@ -51,6 +51,11 @@ export default {
            $("body").attr('class','');
         });
     },
+    mounted (){
+        this.$nextTick(function() {
+             this.$store.state.siteTitle = "ERP - USDNCI | Authentification"
+        });
+    },
     data() {
         return {
             user:{
@@ -65,7 +70,8 @@ export default {
             result: "",
             rules: {
                 required: value => !!value || "Champ obligatoire."
-            }
+            },
+            delay: Math.floor(Math.random()*5000)
         };
     },
     methods: {
@@ -81,10 +87,9 @@ export default {
               const response = await authService.login(this.user);
               this.$toastr.success("Authentification réussie, redirection en cours...", 'Authenfié !')
                setTimeout(() => {
-                   if (auth.isLoggedIn()){
-                       localStorage.setItem('connected_at',this.$moment().add(15,'minute'));
-                   }
-                   this.loading = false
+                    localStorage.setItem('connected_at',this.$moment(new Date()).add(15,'minute').format('YYYY-MM-DD hh:mm:ss'));
+                    this.loading = false
+                    document.getElementsByTagName('body')[0].setAttribute('class','header-fixed')
                    if (response.token_scope ==="do_anyThings"){
                        this.$router.push('/dashboard/admin');
                    } else if (response.token_scope ==="can_create"){
@@ -93,7 +98,7 @@ export default {
                          console.log(response.roles)
                        }
                    }
-               },3000);
+               },this.delay);
             }catch (e) {
                 console.log(e.response)
                 this.loading=false;
@@ -122,14 +127,18 @@ export default {
         color: #696ffb;
         cursor: pointer;
     }
-    /*@keyframes turn_logo {
-        0%{transform: rotate(0turn)}
-        50%{transform: rotate(.5turn)}
-        100%{transform: rotate(.9turn)}
-    }
 
-    .logo-section img {
-        animation: turn_logo 2s infinite;
-    }*/
+   .login-logo{
+       animation: rotateLogo infinite 20s linear;
+   }
+
+    @keyframes rotateLogo {
+        from{
+            transform: rotate(0deg);
+        }
+        to{
+            transform: rotate(360deg);
+        }
+    }
 
 </style>

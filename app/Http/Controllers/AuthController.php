@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\RhRepository;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -78,14 +80,17 @@ class AuthController extends Controller
                 ->join('administrators','users.id','=','administrators.user_id')
                 ->where('users.id',$request->user()->id)
                 ->first();
+
             $roles = DB::table('roles')
                 ->join('user_role','roles.id','=','user_role.role_id')
                 ->where('user_role.user_id','=', $request->user()->id)
                 ->get();
+
             return response()->json([
                 'user'=>$data_user,
                 'roles'=>$roles
             ],200);
+
         } else{
             return response()->json([
                 'message' => 'No loggedIn',
@@ -93,6 +98,101 @@ class AuthController extends Controller
             ],500);
         }
     }
+
+    public function editAvatar (Request $request, $id) {
+
+        $validator = Validator::make($request->all(), [
+            'avatar' => ['required', 'image', 'mimes:png,jpg']
+        ]);
+
+
+        if($validator->fails()){
+            return response()->json($validator->errors(), 422);
+        }
+
+        dd($request->id);
+
+        $file = RhRepository::uploadFile($request->file('avatar'), 'avatar');
+
+        $user = User::find($request->id);
+
+    }
+
+    public function editPassword (Request $request, $id) {
+        $validator = Validator::make($request->all(), [
+            'password' => ['required','min:8'],
+            'new_password' => ['required','min:8','confirmed']
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors(),422);
+        }
+
+
+
+        $user = User::find($id);
+
+        if(!Hash::check($request->password, $user->password)){
+            return response()->json('Le mot de passe actuel ne correspond à nos enrégistrement',404);
+        }
+
+        if(Hash::check($request->new_password, $user->password)){
+            return response()->json('Désolé, vous devez absolument choisi un nouveau mot de passe différent du mot de passe actuel',404);
+        }
+
+        $user->password = Hash::make($request->new_password);
+
+        if($user->save()){
+            return response()->json($user);
+        }
+    }
+
+    public function editUsername (Request $request, $id) {
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'email', Rule::unique('users')->ignore($id)],
+            'password' => ['required']
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = User::find($id);
+
+        if(!Hash::check($request->password, $user->password)){
+            return response()->json('Mot de passe incorrect, rééssayez !', 404);
+        }
+
+        $user->email = $request->email;
+
+        if($user->save()){
+            return response()->json($user);
+        }
+    }
+
+    public function editAdmin (Request $request, $id) {
+        $validator = Validator::make($request->all(), [
+            'firstName' =>  ['required', 'string'],
+            'lastName' => ['required', 'string']
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors(), 422);
+        }
+
+        $admin = Administrator::find($request->user()->id);
+
+        $admin->firstName = $request->firstName;
+        $admin->lastName = $request->lastName;
+        $admin->capacity = $request->capacity;
+        $admin->hobby = $request->hobby;
+        $admin->bio = $request->bio;
+
+        if($admin->save()){
+            return response()->json($admin);
+        }
+    }
+
     public function logout(Request $request)
     {
         $request->user()->token()->revoke();

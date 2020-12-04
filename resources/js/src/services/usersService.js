@@ -18,6 +18,11 @@ export const register = (user) => {
 export const user = (id) => {
     return http().get('/users/'+id);
 }
+
 export const update = (user) => {
     return http().put('update',user);
+}
+
+export const addRole = (roles) => {
+    return http().post('/addRole', roles)
 }

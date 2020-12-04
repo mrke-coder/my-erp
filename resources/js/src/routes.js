@@ -19,6 +19,10 @@ import Training from "./components/pages/Dashboard/Rh/Training";
 import JobApplication from "./components/pages/Dashboard/Rh/JobApplication";
 import Mission from "./components/pages/Dashboard/Rh/Mission";
 import Departure from "./components/pages/Dashboard/Rh/Departure";
+import Profile from './components/pages/Dashboard/Profile';
+import Account from "./components/pages/Dashboard/Profile/Account";
+import Settings from './components/pages/Dashboard/Profile/Settings';
+import Helps from './components/pages/Dashboard/Profile/Helps';
 export default {
     mode: 'history',
     routes: [
@@ -46,7 +50,7 @@ export default {
                     children: [
                         {
                             path:'/dashboard/admin',
-                            name: "Home",
+                            name: "AdminHome",
                             component: Admin_Home
                         },
                         {
@@ -133,6 +137,28 @@ export default {
                         }
                     ]
                 },
+                {
+                    path: '/dashboard/profile/:user/:id/profil',
+                    name: 'Profile',
+                    component: Profile,
+                    children: [
+                        {
+                            path: '/dashboard/profile/:user/:id/profil',
+                            name: 'Account',
+                            component: Account
+                        },
+                        {
+                            path: '/dashboard/profile/:user/:id/parametres',
+                            name: 'Settings',
+                            component: Settings
+                        },
+                        {
+                            path: '/dashboard/profile/:user/:id/aides',
+                            name: 'Helps',
+                            component: Helps
+                        }
+                    ]
+                }
 
             ],
             beforeEnter(to, from, next){

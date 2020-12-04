@@ -10,66 +10,74 @@
           <br><br>
           <div class="grid">
               <p class="grid-header">Base de données des utilisateurs</p>
-              <div class="item-wrapper">
-                  <div class="table-responsive">
-                      <table class="table table-hover" width="100%">
-                          <thead>
-                          <tr>
-                              <th>Profil</th>
-                              <th>Roles</th>
-                              <th>Actions</th>
-                          </tr>
-                          </thead>
-                          <tbody>
-                          <tr v-show="load">
-                              <td colspan="3">
-                                  <div class="text-center text-info">
-                                      <div class="spinner-border" role="status">
-                                          <span class="sr-only">Loading...</span>
-                                      </div>
-                                  </div>
-                              </td>
-                          </tr>
-                          <tr v-for="user in users.data" :key="user.id" v-show="user.id !== $store.state.profile.user.id">
-                              <td class="d-flex align-items-center border-top-0">
-                                  <img class="profile-img img-sm img-rounded mr-2" :src="user.avatar" alt="profile image">
-                                  <span>{{user.firstName}} {{user.lastName}}</span>
-                              </td>
-                              <td>
-                                  <label class="badge badge-danger"
-                                         :class="'ui '+createUserRoleClass(role.role)"
-                                         v-for="role in roles" :key="role.id"
-                                         v-if="role.user_id === user.id">
-                                            {{role.role}}
-                                      <i class="mdi mdi-close"  style="cursor: pointer"></i>
-                                  </label>
-                              </td>
-                              <td>
-                                  <button class="btn btn-success btn-xs" @click="editUser(user.id)">
-                                      <i class="fa fa-edit"></i>
-                                  </button>
-                                  <button class="btn btn-danger btn-xs">
-                                      <i class="fa fa-trash"></i>
-                                  </button>
-                                  <button class="btn btn-info btn-xs">
-                                      <i class="fa fa-info-circle"></i>
-                                  </button>
-                                  <button class="btn btn-warning btn-xs">
-                                      <i class="fa fa-refresh"></i>
-                                  </button>
-                              </td>
-                          </tr>
-                          </tbody>
-                      </table>
+          </div>
+          <div class="row">
+              <div class="col-lg-12" v-show="load">
+                 <div class="grid">
+                     <div class="item-wrapper">
+                         <div class="text-center text-info">
+                             <div class="spinner-border" role="status">
+                                 <span class="sr-only">Loading...</span>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+              </div>
+              <div class="col-lg-4" v-for="user in users.data" :key="user.id" v-show="user.id !== $store.state.userProfile.id">
+                  <div class="card-user mt-4">
+                      <div class="card-user-up"></div>
+                      <div class="avatar mx-auto">
+                          <img :src="user.avatar" class="rounded profile-img" alt="profile image">
+                      </div>
+                      <div class="card-user-body text-center">
+                          <h4 class="card-title">
+                              {{user.firstName+' '+user.lastName}}
+                          </h4>
+                          <p> {{user.email}}</p>
+                          <hr>
+                          <p class="text-left">
+                            <ul class="roles">
+                                <li class="role-item"
+                                v-for="(role, i) in roles" :key="i">
+                                    <label class="badge badge-danger text-left"
+                                            :class="'ui '+createUserRoleClass(role.role)"
+                                            v-if="role.user_id === user.id">
+                                        {{role.role}}
+                                        <i class="mdi mdi-close"  style="cursor: pointer; float:right"></i>
+                                    </label>
+                                </li>
+                            </ul>
+                          </p>
+                          <div>
+                            <button class="btn btn-success btn-xs" @click="editUser(user.id)">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-xs">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                            <button class="btn btn-info btn-xs" @click.prevent="showRoleModal(user.id)">
+                                <i class="fa fa-plus mr-1"></i>role
+                            </button>
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>
       </div>
         <!--- formulaire insertion d'utilisateur-->
-      <b-modal id="userModal" size="lg" title="Modal with Popover" hide-footer>
-          <form class="container" id="form-user" autocomplete="off">
+      <b-modal id="userModal" size="lg" :title="title" hide-footer>
+          <form class="container" id="form-user" autocomplete="off" v-show="!showRoleForm">
+              <div class="form-group" v-show="editing">
+                <div class="checkbox">
+                    <label>
+                    <input type="checkbox" class="form-check-input" v-model="user.ex_password">
+                        Utiliser l'ancien mot de passe
+                     <i class="input-frame"></i>
+                    </label>
+                </div>
+              </div>
               <div class="row">
-                  <div class="col-md-4 mb-3">
+                  <div class="col-md-4 mb-3" :class="{'col-md-12':user.ex_password}">
                       <label for="email">
                           Adresse E-mail
                           <span class="requis">*</span>
@@ -84,7 +92,7 @@
                       />
                       <div class="invalid__form" v-if="errors.email">{{errors.email[0]}}</div>
                   </div>
-                  <div class="col-md-4 mb-3">
+                  <div class="col-md-4 mb-3" v-show="!user.ex_password">
                       <label for="password">
                           Mot De Passe
                           <span class="requis">*</span>
@@ -99,7 +107,7 @@
                       />
                       <div class="invalid__form" v-if="errors.password">{{errors.password[0]}}</div>
                   </div>
-                  <div class="col-md-4 mb-3">
+                  <div class="col-md-4 mb-3"  v-show="!user.ex_password">
                       <label for="password_confirmation">
                           Confirmer Le Mot De Passe
                           <span class="requis">*</span>
@@ -137,7 +145,7 @@
                           placeholder="Entrer Nom De Famille"
                       />
                   </div>
-                  <div class="col-md-12 mb-3">
+                  <div class="col-md-12 mb-3" v-show="!editing">
                       <label class="typo__label" for="role">Role de l'utilisateur</label>
                       <div class="form-group row">
                           <div class="form-check" v-for="role in roleData" :key="role.id">
@@ -162,6 +170,25 @@
                   <i class="fa fa-check-circle"></i>&nbsp; Modifier
               </button>
           </form>
+          <form class="container" @submit.prevent="OnaddNewRole" id="form-role" autocomplete="off" v-show="showRoleForm">
+              <div class="form-group" v-for="role in roleData" :key="role.id">
+                   <div class="checkbox">
+                        <label>
+                        <input type="checkbox" class="form-check-input" :value="role.id" v-model="userRole.role">
+                            {{role.role}}
+                        <i class="input-frame"></i>
+                        </label>
+                    </div>
+              </div>
+              <div class="form-group">
+                    <button class="btn btn-danger" type="reset" @click.prevent="hideModal">
+                        <i class="fa fa-close"></i>&nbsp; Annuler
+                    </button>&nbsp;
+                    <button class="btn btn-success" type="submit">
+                        <i class="fa fa-check-circle"></i>&nbsp; Ajouter
+                    </button>&nbsp;
+              </div>
+          </form>
       </b-modal>
   </div>
 </template>
@@ -176,6 +203,8 @@ export default {
       roles: [],
       load: false,
       editing: false,
+      title: 'Ajouter un nouvel utilisateur',
+      showRoleForm: false,
       isLoading: false,
       submitted: false,
       roleData: [],
@@ -187,14 +216,28 @@ export default {
           email: '',
           password: '',
           password_confirmation: '',
+          ex_password: false,
           firstName: '',
           lastName: '',
           role:[]
+      },
+      userRole: {
+          user_id: '',
+          role: []
       }
     };
   },
   created() {
-    this.load = true;
+       this.$store.state.siteTitle = `ERP - USDNCI | Utilisateurs`;
+  },
+  mounted () {
+    this.getRoles();
+    this.getUserRoles();
+  },
+  methods: {
+
+    getUserRoles() {
+        this.load = true;
     userService
       .users()
       .then((response) => {
@@ -202,28 +245,45 @@ export default {
           this.load = false;
           this.users = response.data.users;
           this.roles = response.data.roles;
-          //console.log(this.users)
         }, 3000);
       })
       .catch((error) => console.log(error));
-
-       userService
+    },
+    getRoles (){
+      userService
       .roles()
       .then((response) => {
         this.roleData = response.data;
         this.isLoading = false;
       })
       .catch((error) => console.log(error));
-  },
-  methods: {
+    },
     addUser() {
       this.$bvModal.show('userModal');
       this.editing = false;
+      this.user = {};
+      this.errors = '';
+      this.showRoleForm = false;
     },
+
+
     hideModal(){
         this.$bvModal.hide('userModal');
         this.editing = false;
+        this.user = {};
+        this.errors = '';
+        this.showRoleForm = false;
     },
+
+    showRoleModal (id) {
+        this.showRoleForm = true;
+        this.editing = false;
+        this.errors = '';
+        this.userRole.user_id = id;
+        this.$bvModal.show('userModal');
+        this.title = "Ajouter un nouveau rôle"
+    },
+
     createUserRoleClass(role){
         const data = role.split(' ');
         let classData='';
@@ -237,8 +297,10 @@ export default {
 
         return classData;
     },
+
    editUser: async function(id){
         this.editing = true;
+        this.errors = '';
        try {
            const response = await userService.user(id);
                this.user = response.data
@@ -247,15 +309,17 @@ export default {
            console.log(e.response)
        }
    },
+
     register: async function () {
       try {
         const response = await userService.register(this.user);
           this.$toastr.success("Utilisateur enregistré avec succès", "SAUVEGARDE REUSSIE");
           this.hideModal();
-          this.users.data.unshift(response.data.user[0])
+          this.users.data.unshift(response.data.user)
           response.data.roles.forEach(role => {
-               this.roles.unshift(role);
+               this.roleData.unshift(role);
           });
+          this.user = {};
 
       } catch (e) {
         if (e.response.status === 422) {
@@ -266,6 +330,8 @@ export default {
         this.submitted = false;
       }
     },
+
+
     update: async function (){
        try {
           const response = await userService.update(this.user);
@@ -276,7 +342,7 @@ export default {
                    this.users.data[i] = response.data;
                }
            });
-           this.$toastr("Utilisateur Modifié avec succès !", "MODIFICATION REUSSIE");
+           this.$toastr.success("Utilisateur Modifié avec succès !", "MODIFICATION REUSSIE");
        }catch (e) {
            switch (e.response.status) {
                case 422:
@@ -289,6 +355,33 @@ export default {
                    this.$toastr.info('Quelque s\'est mal passée, rééssayer.')
            }
        }
+    },
+
+    OnaddNewRole: async function () {
+        try {
+           const response = await userService.addRole(this.userRole);
+           console.log(response.data)
+           response.data.data.map(el => {
+               this.roles.unshift(el);
+           });
+           this.getUserRoles();
+           this.hideModal();
+           if(response.data.nb_ignored > 0){
+               this.$toastr.warning('Attention, parmi les rôles selectionnés, il y a d\'autres qui appartiennent déjà donc nous les avons ignoréss', "UNE EXCEPTION LEVEE");
+           } else{
+               this.$toastr.success("Ajout de rôle effectué avec succès !", "SAUVEGARDE REUSSIE");
+           }
+        } catch (e) {
+            switch (e.response.status) {
+                case 422:
+                    this.$toastr.error('Selectionner un rôle puis continuer !', 'erreur champ')
+                    break;
+
+                default:
+                    this.$toastr.warning('Quelque chose s\'est mal passé !', 'Erreur inconnue')
+                    break;
+            }
+        }
     }
 
   },
@@ -301,6 +394,9 @@ span.ui {
   box-shadow: 1px 1px 5px rgb(0, 0, 0, 0.5);
   color: white;
   padding: 5px;
+}
+label.badge{
+    width: 100% !important;
 }
 label.badge.ui.admin {
   background-color: #DB504A !important;
@@ -323,5 +419,52 @@ img.avatar{
   width: 40px;
   height: 40px;
   border-radius: 100%;
+}
+
+.card-user{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background-color: #FFF;
+    background-clip: border-box;
+    border-radius: .25rem;
+    max-width: 22rem;
+    border: 0;
+    font-weight: 400;
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,.16), 0 2px 10px 0 rgba(0,0,0,0.12);
+}
+.card-user .card-user-up{
+    height: 120px;
+    overflow: hidden;
+    border-top-left-radius: .25rem;
+    border-top-right-radius: .25rem;
+    background: linear-gradient(40deg, #2096ff, #05ffa3) !important;
+}
+.card-user .avatar{
+    width: 120px;
+    margin-top: -60px;
+    overflow: hidden;
+    border: 5px solid #FFF;
+    border-radius: 50%;
+    background-color: #FFF !important;
+}
+.card-user .avatar img{
+    width: 100%;
+    height: 100%;
+}
+.card-user-body{
+    border-radius: 0 !important;
+    padding:1.5rem 1.25rem;
+    min-height: 1px;
+    flex: auto;
+}
+.card-title{
+    margin-bottom: .75rem !important;
+    font-weight: 400;
+}
+p{
+    margin-top: 0;
+    margin-bottom: 1rem;
 }
 </style>

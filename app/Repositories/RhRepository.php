@@ -13,6 +13,7 @@ class RhRepository
     {
        $nomfichier = null;
        $file_upload = null;
+       
        for ($i=0; $i<5; $i++){
            $nomfichier .= mt_rand(1,9);
        }
@@ -34,6 +35,7 @@ class RhRepository
 
        return $file_upload;
     }
+
     public static function deleteUploadFile($chemin)
     {
         if (file_exists($chemin)){

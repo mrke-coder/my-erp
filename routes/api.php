@@ -8,13 +8,19 @@ Route::group(['prefix' => 'user'], function (){
     Route::group(['middleware'=>'auth:api'], function (){
         Route::get('/logout', 'AuthController@logout')->name('auth.logout');
         Route::get('/profil', 'AuthController@profil');
+        Route::put('/edit-avatar/{id}', 'AuthController@editAvatar')->name('auth.edit_avatar');
+        Route::put('/edit-password/{id}', 'AuthController@editPassword')->name('auth.edit_password');
+        Route::put('/edit-email/{id}', 'AuthController@editUsername')->name('auth.edit_email');
+        Route::put('/edit-my-infos/{id}','AuthController@editAdmin')->name('auth.edit_my-profile');
+
         Route::post('/register', 'UserController@register')->name('auth.register');
         Route::get('users','UserController@index')->name('auth.list');
         Route::get('roles','RoleController@index');
         Route::get('/role_by_user','RoleController@usersRoles');
         Route::get('/users/{id}','UserController@show');
         Route::put('/update','UserController@update');
-        Route::put('/delete/{id}','UserController@destroy');
+        Route::delete('/delete/{id}','UserController@destroy');
+        Route::post('/addRole','UserController@addRole' );
         Route::group(['prefix'=>'rh'], function (){
             Route::resource('jobs','Rh\JobApplicationController')->middleware('scope:do_anyThings,can_create');
             Route::resource('employees','Rh\EmployeeController')->middleware('scope:do_anyThings,can_create');
