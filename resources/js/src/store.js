@@ -6,8 +6,9 @@ export default new Vuex.Store({
     state: {
         isLoggedIn: null,
         siteTitle: null,
-        userProfile:'',
-        userRoles: [{role:''}],
+        profile: {},
+        user: {},
+        roles:{},
         pageName: '',
         loading: true,
         apiUrl: "http://127.0.0.1:8000/api/user/",

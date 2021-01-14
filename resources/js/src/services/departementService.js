@@ -23,3 +23,7 @@ export const delete_departement = (id) => {
 export const restore_deleted = (id) => {
   return http().get('rh/restore/department/'+id);
 }
+
+export const employees_by_department = id => {
+  return http().get(`rh/all_emplyees_by_department/${id}`);
+}

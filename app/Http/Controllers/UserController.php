@@ -60,21 +60,22 @@ class UserController extends Controller
                     ->select('users.*','administrators.*')
                     ->where('users.id','=',$user->id)
                     ->first();
-              for ($i=0; $i <count($request->role) ; $i++) {
-                    UserRole::create([
-                        'user_id' => $user->id,
-                        'role_id' => $request->role[$i]
-                    ]);
-                }
+                UserRole::create([
+                    'user_id' => $user->id,
+                    'role_id' => $request->role
+                ]);
+
                 $roles = DB::table('roles')
                 ->join('user_role','roles.id','=','user_role.role_id')
-                ->select('roles.*')
+                ->select('roles.*','user_role.clearances as clearances')
                 ->where('user_role.user_id','=',$user->id)
-                ->get();
+                ->first();
+
                 return response()->json([
                     'user' => $data,
                     'roles' => $roles
-                ],200);
+                ]);
+
             } else{
                 try {
                     $user->delete();
@@ -144,60 +145,28 @@ class UserController extends Controller
         }
     }
 
-    public function addRole (Request $request) {
+    public function addRole (Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'role' => ['required']
         ]);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $rolesU = UserRole::query()->where('user_id','=',$request->user_id)->get();
-        $roles = Role::query()
-        ->join('user_role','roles.id','=','user_role.role_id')
-        ->get();
+        $roleUser = UserRole::query()->where('user_id', '=', $request->user_id)->get();
 
-        $redondance = 0;
-        $result = [];
-        $rolesUpdate =[];
-
-
-           if(count($rolesU) > 0){
-            foreach($rolesU as $_role){
-                for($i=0; $i <count($request->role); $i++){
-                    if($_role->role_id == $request->role[$i]){
-                        $redondance += 1 ;
-                    } else{
-                        $result[] = UserRole::create([
-                            'user_id' => $request->user_id,
-                            'role_id' => $request->role[$i]
-                        ]);
-                    }
-                }
-            }
-           } else {
-            for($i=0; $i <count($request->role); $i++){
-                $result[] = UserRole::create([
-                    'user_id' => $request->user_id,
-                    'role_id' => $request->role[$i]
-                ]);
-            }
-         }
-
-
-        foreach($roles as $value) {
-           foreach($result as $rslt){
-               if($value->id === $rslt->role_id){
-                $rolesUpdate[] = $value;
-               }
-           }
+        if ($roleUser){
+            return response()->json('Un utilisateur peut avoir un seul rôle principal');
         }
 
-    return response()->json([
-            'nb_ignored' => $redondance,
-            'data' => $rolesUpdate
+        $result = UserRole::create([
+            'user_id' => $request->user_id,
+            'role_id' => $request->role
         ]);
-    }
 
+        return response()->json($result);
+
+    }
 }

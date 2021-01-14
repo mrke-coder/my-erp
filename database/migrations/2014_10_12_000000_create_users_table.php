@@ -28,7 +28,8 @@ class CreateUsersTable extends Migration
         Schema::create('roles', function (Blueprint $table){
            $table->id();
            $table->string('role',100);
-          $table->softDeletes();
+           $table->string('habilities')
+           $table->softDeletes();
            $table->timestamps();
         });
 
@@ -49,6 +50,7 @@ class CreateUsersTable extends Migration
         Schema::create('user_role', function (Blueprint $table){
             $table->foreignId('user_id');
             $table->foreignId('role_id');
+            $table->string('clearances');
             $table->foreign('user_id')->references('id')->on('users')
                 ->onUpdate('restrict')->onDelete('restrict');
             $table->foreign('role_id')->references('id')->on('roles')

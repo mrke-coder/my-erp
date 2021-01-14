@@ -43,7 +43,7 @@
 
 <script>
 import * as authService from "../../../services/authService"
-import * as auth from "../../../services/authService";
+import {mapState} from 'vuex';
 export default {
     name: "Login",
     created() {
@@ -80,27 +80,29 @@ export default {
             this.loading = true;
             if (!vm.user.email || !vm.user.password) {
                 this.loading = false;
-                this.$toastr.error("L'e-mail et le mot de passe ne peuvent pas être nuls.", 'Erreur Champ')
+                this.$toastr.error("L'e-mail et le mot de passe ne peuvent pas être nuls.", 'Erreur Champ');
                 return;
             }
             try {
               const response = await authService.login(this.user);
-              this.$toastr.success("Authentification réussie, redirection en cours...", 'Authenfié !')
+              this.$toastr.success("Authentification réussie, redirection en cours...", 'Authenfié !');
                setTimeout(() => {
                     localStorage.setItem('connected_at',this.$moment(new Date()).add(15,'minute').format('YYYY-MM-DD hh:mm:ss'));
-                    this.loading = false
-                    document.getElementsByTagName('body')[0].setAttribute('class','header-fixed')
-                   if (response.token_scope ==="do_anyThings"){
-                       this.$router.push('/dashboard/admin');
-                   } else if (response.token_scope ==="can_create"){
-                       switch (response.roles) {
-                            default:
-                         console.log(response.roles)
-                       }
-                   }
+                    this.loading = false;
+                    document.getElementsByTagName('body')[0].setAttribute('class','header-fixed');
+
+                    switch (response.token_scope) {
+                        case 'do_anyThings':
+                            window.location.href = `/dashboard/admin/${authService.hashUrlParams(response.user.id)}`;
+                            break;
+                        case 'Rh':
+                            window.location.href = `/dashboard/rh/${authService.hashUrlParams(response.user.id)}/rh`
+                            break;
+                        default:
+                            this.$toastr.error('redirection impossible');
+                    }
                },this.delay);
             }catch (e) {
-                console.log(e.response)
                 this.loading=false;
                 switch (e.response.status) {
                     case 401:

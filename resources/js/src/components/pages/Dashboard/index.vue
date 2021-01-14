@@ -178,9 +178,7 @@
                                     <div class="dropdown-body border-top pt-0">
                                         <router-link
                                             :to="
-                                                `/dashboard/profile/${admin.lastName}-${admin.firstName}/${
-                                                    admin.id
-                                                }/profil`
+                                                `/dashboard/profile/${user.lastName}-${user.firstName}/${user.id}/profil`
                                             "
                                             class="dropdown-grid"
                                         >
@@ -193,9 +191,7 @@
                                         </router-link>
                                         <router-link
                                             :to="
-                                                `/dashboard/profile/${admin.lastName}-${admin.firstName}/${
-                                                    admin.id
-                                                }/parametres`
+                                                `/dashboard/profile/${user.lastName}-${user.firstName}/${user.id}/parametres`
                                             "
                                             class="dropdown-grid"
                                         >
@@ -208,9 +204,7 @@
                                         </router-link>
                                         <router-link
                                             :to="
-                                                `/dashboard/profile/${admin.lastName}-${admin.firstName}/${
-                                                    admin.id
-                                                }/aides`
+                                                `/dashboard/profile/${user.lastName}-${user.firstName}/${user.id}/aides`
                                             "
                                             class="dropdown-grid"
                                         >
@@ -252,36 +246,27 @@
                         <div class="display-avatar animated-avatar">
                             <img
                                 class="profile-img img-lg rounded-circle"
-                                :src="admin.avatar"
+                                :src="user.avatar"
                                 alt="profile image"
                             />
                         </div>
                         <div class="info-wrapper">
                             <p class="user-name">
-                                {{
-                                    admin.firstName +
-                                        " " +
-                                        admin.lastName
-                                }}
+                                {{ user.firstName + " " + user.lastName }}
                             </p>
                             <h6 class="display-income">
-                                <span
-                                    v-if="
-                                        $store.state.userRoles[0].role ===
-                                            'administrator'
-                                    "
-                                    >Administrateur</span
+                                <span>{{ roles.role }}</span
                                 >
-                                <span v-else>{{
-                                    admin.email
-                                }}</span>
                             </h6>
                         </div>
                     </div>
-                    <AdminLlinks
+                    <admin-links
+                        :user_id="user.id"
                         v-if="!$route.path.split('/').find(el => el === 'rh')"
                     />
-                    <RhLinks
+                    <rh-links
+                        :authId="user.id"
+                        :role="whatRole(roles.role)"
                         v-if="$route.path.split('/').find(el => el === 'rh')"
                     />
                 </div>
@@ -309,7 +294,7 @@
                                             class="breadcrumb-item active"
                                             aria-current="page"
                                         >
-                                            {{$store.state.pageName}}
+                                            {{ $store.state.pageName }}
                                         </li>
                                     </ol>
                                 </nav>
@@ -358,9 +343,9 @@
 
 <script>
 import * as auth from "../../../services/authService";
-import AdminLlinks from "../../Shared/AdminLlinks";
+import AdminLinks from "../../Shared/AdminLinks";
 import RhLinks from "../../Shared/RhLinks";
-import {mapState} from 'vuex';
+import { mapState } from "vuex";
 export default {
     name: "index",
     data() {
@@ -382,8 +367,9 @@ export default {
             max_progress: 100
         };
     },
-    computed: mapState ({
-        admin: state => state.userProfile,
+    computed: mapState({
+        user: state => state.user,
+        roles: state => state.roles,
         selectedLanguageFlag() {
             const vm = this;
             switch (vm.$i18n.locale) {
@@ -392,8 +378,7 @@ export default {
                 case "fr":
                     return require("../../../assets/flags/fr.png");
             }
-        },
-
+        }
     }),
     created() {
         setTimeout(() => {
@@ -409,12 +394,10 @@ export default {
                 $(".page-body").toggleClass("sidebar-collpased");
             });
         });
-
         this.$store.state.siteTitle = `ERP - USDNCI | Tableau de board`;
     },
-    mounted (){
-        this.$store.state.pageName ="Tableau De Bord";
-        console.log(this.admin);
+    mounted() {
+        this.$store.state.pageName = "Tableau De Bord";
     },
     methods: {
         selectLanguage(code) {
@@ -442,10 +425,20 @@ export default {
         },
         lowerCase(value) {
             value.toString().toLowerCase();
+        },
+        whatRole (role) {
+            switch(role) {
+                case 'administrator':
+                    return 'admin';
+                case 'human resource':
+                    return 'rh';
+                default:
+                    console.log('role inconnu', role);
+            }
         }
     },
     components: {
-        AdminLlinks,
+        AdminLinks,
         RhLinks
     }
 };

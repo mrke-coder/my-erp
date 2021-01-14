@@ -30,8 +30,8 @@
                               </tr>
                               <tr v-for="service in services.data" :key="service.id" v-show="!loading" :class="{'is_deteled': service.deleted_at}">
                                   <td>{{service.name}}</td>
-                                  <td style="text-align: center">0</td>
-                                  <td>{{service.created_at | moment('D/MM/Y')}}</td>
+                                  <td style="text-align: center"> {{getEmployeesByDepartment(service.id)}}</td>
+                                  <td>{{service.created_at | moment('DD/MM/Y')}}</td>
                                   <td>
                                       <button @click.prevent="editDepartement(service.id)" class="btn btn-xs btn-success"><i class="fa fa-edit"></i></button>
                                       <button @click.prevent="onDelete(service.id)" class="btn btn-xs btn-danger" :disabled="service.deleted_at"><i class="fa fa-trash"></i></button>
@@ -225,7 +225,14 @@ export default {
           this.loading = false
         },3000)
       }).catch(err => this.loading = false)
-		}
+    },
+    
+    getEmployeesByDepartment (idDep) {
+      depService.employees_by_department(idDep)
+      .then(response =>{
+       response.data.nombre
+      })
+    }
   },
 
 }

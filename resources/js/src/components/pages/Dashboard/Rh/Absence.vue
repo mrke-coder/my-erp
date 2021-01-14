@@ -156,9 +156,11 @@
                 .then(response => this.employees = response.data)
                 .catch(e => console.log(e.response));
         },
+
         mounted() {
             this.getAbsences();
         },
+        
         methods:{
             getAbsences (page = 1) {
                 service.absences(page)

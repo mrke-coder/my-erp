@@ -14,20 +14,22 @@ class AdminSeeder extends Seeder
     public function run()
     {
         $user = User::create([
-            'email' => 'mrke@hightech-ci.com',
+            'email' => 'admin@usdnci.com',
             'password' => Hash::make('admin@4358'),
             'confirmed' => true,
             'avatar' => 'http://127.0.0.1:8000/uploads/avatar/user.png'
         ]);
 
         $role = Role::create([
-            'role' => 'administrator'
+            'role' => 'human resource',
+            'habilities'=> 'create,read,update,delete,restore'
         ]);
 
         if ($user) {
             UserRole::create([
                 'user_id' => $user->id,
-                'role_id' => $role->id
+                'role_id' => $role->id,
+                'clearances'=>'Anything'
             ]);
         }
     }

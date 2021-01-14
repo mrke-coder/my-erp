@@ -6,6 +6,9 @@ import store from "./store";
 import vueToastr2 from "vue-toastr-2";
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import SemanticUIVue from "semantic-ui-vue";
+import Loading from 'vue-loading-overlay';
+
+// PLUGINS
 import "./plugins/global"
 import "vue-toastr-2/dist/vue-toastr-2.min.css"
 import 'font-awesome/css/font-awesome.css';
@@ -13,8 +16,9 @@ import 'font-awesome/css/font-awesome.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import './styles/global.css';
 import 'semantic-ui-css/semantic.min.css';
-import './plugins/script'
-
+import './plugins/script';
+import 'vue-loading-overlay/dist/vue-loading.css';
+//  ENDS PLUGINS
 
 import axios from 'axios'
 import VueAxios from 'vue-axios'
@@ -54,6 +58,9 @@ Vue.component('multiselect', Multiselect);
 Vue.config.productionTip = false;
 Vue.component('pagination', require('laravel-vue-pagination'));
 Vue.use(SemanticUIVue);
+Vue.use(Loading);
+
+
 new Vue({
   el: '#app',
   router: new VueRouter(routes),

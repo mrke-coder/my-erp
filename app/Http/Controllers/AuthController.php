@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Administrator;
 use App\Models\Role;
+use App\Models\UserRole;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -13,64 +14,74 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\RhRepository;
 use Illuminate\Validation\Rule;
-
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
         'email' => 'required|email',
-        'password' => 'required|string',
-        'remember_me'=>'boolean'
+        'password' => 'required|string'
         ]);
 
         if($validator->fails()){
             return response()->json($validator->errors(),400);
         }
-        if(Auth::attempt(['email'=>$request->email,'password'=>$request->password])){
-
-            $user = $request->user();
-
-            $roles = DB::table('roles')
-                ->join('user_role','user_role.role_id','=','roles.id')
-                ->where('user_role.user_id','=',$user->id)
-                ->get();
-            $array_role =[];
-            foreach ($roles as $role){
-                $array_role[] = $role->role;
-            }
-
-            if (in_array('administrator',$array_role)){
-                $tokenData = $user->createToken('Personnal Access Token',['do_anyThings']);
-            } else{
-                $tokenData = $user->createToken('Personnal Access Token',['can_create']);
-            }
-            $token = $tokenData->token;
-            if ($request->remember_me){
-                $token->expires_at = Carbon::now()->addYears(1);
-            }
-            $userData = DB::table('users')
-                ->join('administrators','users.id','=','administrators.user_id')
-                ->where('users.id','=',$user->id)
-                ->get();
-            if ($token->save()){
-                return response()->json([
-                    'user' => $userData,
-                    'roles'=>$array_role,
-                    'access_token' => $tokenData->accessToken,
-                    'token_type' => 'Bearer',
-                    'token_scope' => $tokenData->token->scopes[0],
-                    'expires_at' => Carbon::parse($tokenData->token->expires_at)->toDateTimeString()
-                ],200);
-            } else{
-                return response()->json('some error',500);
-            }
-        } else{
-            return response()->json([
-                'message' => 'unAuthorized, access denied',
-                'status' => 401
-            ],401);
+        if(!Auth::attempt(['email'=>$request->email,'password'=>$request->password])) {
+            return response()->json('unAuthorized, access denied', 401);
         }
+
+        $user = $request->user();
+
+        $role = DB::table('roles')
+            ->join('user_role','user_role.role_id','=','roles.id')
+            ->where('user_role.user_id','=',$user->id)
+            ->first();
+
+        $tokenData =null;
+        $array_role = [];
+
+        switch ($role->role){
+            case 'administrator':
+                $tokenData = $user->createToken('Personnal Access Token',['do_anyThings']);
+                $array_role[] = 'admin';
+                break;
+            case 'human resource':
+                $tokenData = $user->createToken('Personnal Access Token', ['Rh']);
+                $array_role[] = 'Rh';
+                break;
+            default:
+                return response()->json('Rôle non pris en compte', 401);
+        }
+
+
+        $rolesU = UserRole::query()
+            ->where('user_id','=',$user->id)
+            ->get();
+
+        foreach ($rolesU as $v) {
+            $array_role[] = $v->clearances;
+        }
+
+
+        $token = $tokenData->token;
+        $userData = DB::table('users')
+            ->join('administrators','users.id','=','administrators.user_id')
+            ->where('users.id','=',$user->id)
+            ->first();
+
+        if ($token->save()){
+            return response()->json([
+                'user' => $userData,
+                'roles'=>$array_role,
+                'access_token' => $tokenData->accessToken,
+                'token_type' => 'Bearer',
+                'token_scope' => $tokenData->token->scopes[0],
+                'expires_at' => Carbon::parse($tokenData->token->expires_at)->toDateTimeString()
+            ],200);
+        } else{
+            return response()->json('some error',500);
+        }
+
     }
 
     public function profil(Request $request)
@@ -83,19 +94,18 @@ class AuthController extends Controller
 
             $roles = DB::table('roles')
                 ->join('user_role','roles.id','=','user_role.role_id')
+                ->select('roles.*', 'user_role.clearances as clearances')
                 ->where('user_role.user_id','=', $request->user()->id)
-                ->get();
+                ->first();
 
             return response()->json([
                 'user'=>$data_user,
-                'roles'=>$roles
+                'roles'=>$roles,
+                'clearances' => explode(',',$roles->clearances)
             ],200);
 
         } else{
-            return response()->json([
-                'message' => 'No loggedIn',
-                'status_code' => 500
-            ],500);
+            return response()->json('No loggedIn',403);
         }
     }
 

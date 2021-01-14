@@ -4,7 +4,9 @@ import Dashboard from "./components/pages/Dashboard"
 import Admin from "./components/pages/Dashboard/Admin";
 import Admin_Home from "./components/pages/Dashboard/Admin/Home";
 import Users from "./components/pages/Dashboard/Admin/Users";
-import Rh from "./components/pages/Dashboard/RH"
+
+//  RH LINKS
+import Rh from "./components/pages/Dashboard/Rh"
 import Home from "./components/pages/Dashboard/Rh/Home";
 import Departement from "./components/pages/Dashboard/Rh/Departement"
 import Speciality from "./components/pages/Dashboard/Rh/Speciality";
@@ -19,121 +21,130 @@ import Training from "./components/pages/Dashboard/Rh/Training";
 import JobApplication from "./components/pages/Dashboard/Rh/JobApplication";
 import Mission from "./components/pages/Dashboard/Rh/Mission";
 import Departure from "./components/pages/Dashboard/Rh/Departure";
+
+// END RH LINKS
+
 import Profile from './components/pages/Dashboard/Profile';
 import Account from "./components/pages/Dashboard/Profile/Account";
 import Settings from './components/pages/Dashboard/Profile/Settings';
 import Helps from './components/pages/Dashboard/Profile/Helps';
+
 export default {
     mode: 'history',
     routes: [
         {
-            path: '/',
+            path: '/:session?',
             name: 'Authentification',
             component: Login,
              beforeEnter(to, from, next) {
                  if (!auth.isLoggedIn()) {
                      next();
                  } else {
-                     next('/dashboard/admin')
+                     if (auth.whoIsConnected('admin')){
+                         next(`/dashboard/admin/${auth.hashUrlParams(auth.someOneConnectedData().id)}`);
+                     } else if (auth.whoIsConnected('Rh')){
+                         next(`/dashboard/rh/${auth.hashUrlParams(auth.someOneConnectedData().id)}/rh`);
+                         //console.log(auth.someOneConnectedData())
+                     }
                  }
              }
         },
         {
-           path: '/dashboard',
+           path: '/dashboard/:role/:id/',
            name: 'Dashboard',
            component: Dashboard,
             children:[
                 {
-                    path:'/dashboard/admin',
+                    path:'/',
                     name: 'Admin',
                     component: Admin,
                     children: [
                         {
-                            path:'/dashboard/admin',
+                            path:'/',
                             name: "AdminHome",
                             component: Admin_Home
                         },
                         {
-                            path:'/dashboard/admin/utilisateurs',
+                            path:'/utilisateurs',
                             name:'Users_Home',
                             component: Users
                         },
+                    ]
+                },
+                {
+                    path:'rh/',
+                    name: 'RH',
+                    component: Rh,
+                    children:[
                         {
-                            path:'/dashboard/admin/rh',
-                            name: 'RH',
-                            component: Rh,
-                            children:[
-                                {
-                                    path:'/dashboard/admin/rh',
-                                    name: 'Home',
-                                    component: Home
-                                },
-                                {
-                                  path:'/dashboard/admin/rh/departements',
-                                  name:'Departement',
-                                  component: Departement
-                                },
-                                {
-                                  path:'/dashboard/admin/rh/specialites',
-                                  name: 'Speciality',
-                                  component: Speciality
-                                },
-                                {
-                                    path:'/dashboard/admin/rh/employes',
-                                    name: 'Employee',
-                                    component: Employee
-                                },
-                                {
-                                  path: '/dashboard/admin/rh/employes/:id/informations/:page',
-                                  name: 'EmployDetailsPage',
-                                  component: EmployeeInfos
-                                },
-                                {
-                                    path: "/dashboard/admin/rh/salaires",
-                                    name: "Wages",
-                                    component: Wages
-                                },
-                                {
-                                    path: '/dashboard/admin/rh/primes',
-                                    name: 'PrimesEmployees',
-                                    component: PrimesEmployees
-                                },
-                                {
-                                    path: '/dashboard/admin/rh/absences',
-                                    name: 'Absence',
-                                    component: Absence
-                                },
-                                {
-                                    path: '/dashboard/admin/rh/permissions',
-                                    name: 'Permission',
-                                    component: Permission
-                                },
-                                {
-                                    path: '/dashboard/admin/rh/heures-supplementaires',
-                                    name: 'Additional-Hour',
-                                    component: AdditionalHour
-                                },
-                                {
-                                    path: "/dashboard/admin/rh/formation-des-employes",
-                                    name: "Training",
-                                    component: Training
-                                },
-                                {
-                                    path: "/dashboard/admin/rh/demandes-d-emploi",
-                                    name: "Job",
-                                    component: JobApplication
-                                },
-                                {
-                                    path: "/dashboard/admin/rh/missions-employes",
-                                    name: "Mission",
-                                    component: Mission
-                                },
-                                {
-                                    path: "/dashboard/admin/rh/demissions-employes",
-                                    name: "Departure",
-                                    component: Departure
-                                }
-                            ]
+                            path:'/',
+                            name: 'Home',
+                            component: Home
+                        },
+                        {
+                            path:'departements',
+                            name:'Departement',
+                            component: Departement
+                        },
+                        {
+                            path:'specialites',
+                            name: 'Speciality',
+                            component: Speciality
+                        },
+                        {
+                            path:'employes',
+                            name: 'Employee',
+                            component: Employee
+                        },
+                        {
+                            path: 'employes/:id/informations/:page',
+                            name: 'EmployDetailsPage',
+                            component: EmployeeInfos
+                        },
+                        {
+                            path: "salaires",
+                            name: "Wages",
+                            component: Wages
+                        },
+                        {
+                            path: 'primes',
+                            name: 'PrimesEmployees',
+                            component: PrimesEmployees
+                        },
+                        {
+                            path: 'absences',
+                            name: 'Absence',
+                            component: Absence
+                        },
+                        {
+                            path: 'permissions',
+                            name: 'Permission',
+                            component: Permission
+                        },
+                        {
+                            path: 'heures-supplementaires',
+                            name: 'Additional-Hour',
+                            component: AdditionalHour
+                        },
+                        {
+                            path: "formation-des-employes",
+                            name: "Training",
+                            component: Training
+                        },
+                        {
+                            path: "demandes-d-emploi",
+                            name: "Job",
+                            component: JobApplication
+                        },
+                        {
+                            path: "missions-employes",
+                            name: "Mission",
+                            component: Mission
+                        },
+                        {
+                            path: "demissions-employes",
+                            name: "Departure",
+                            component: Departure
                         }
                     ]
                 },

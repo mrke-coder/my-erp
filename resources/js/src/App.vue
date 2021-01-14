@@ -8,26 +8,28 @@
     import * as auth from "./services/authService"
 export default {
   name: 'App',
-    mounted: async function() {
-        console.log(auth.isLoggedIn());
-         if(auth.isLoggedIn()){
-    try{
-         const response = await auth.getProfil();
-         this.$store.state.userProfile = response.data.user;
-         this.$store.state.userRoles = response.data.roles;
-    } catch(e){
-        console.log(e.response)
-    }
-}
+    beforeCreate(){
+        if(auth.isLoggedIn()) {
+            auth.getProfil()
+            .then(response => {
+                this.$store.state.user = response.data.user;
+                this.$store.state.roles = response.data.roles;
+                console.log(this.$store.state.roles)
+            })
+            .catch(e => console.log(e.response));     
+        }
     },
     updated() {
       this.verifySessionDuration();
       document.getElementsByTagName('title')[0].innerHTML = this.$store.state.siteTitle;
-      console.log(this.$store.state.userProfile);
+      localStorage.setItem('page_title',this.$store.state.siteTitle);
+     let loader = this.$loading.show();
+        setTimeout(() => {
+            loader.hide();
+        },5000 );
     },
     created () {
       this.verifySessionDuration();
-
     },
     methods:{
         verifySessionDuration () {
@@ -48,14 +50,14 @@ export default {
 </script>
 
 <style>
-    .sidebar a.router-link-exact-active.router-link-active, .sidebar .navigation-menu a:hover
+    .sidebar a.router-link-exact-active, .sidebar .navigation-menu a:hover
     {
         background-color: #7fb2d4;
         border-left: 3px solid #223C61;
         color: white !important;
         font-weight: bold;
     }
-    .sidebar a.router-link-exact-active.router-link-active i
+    .sidebar a.router-link-exact-active i
     {
         color: white !important;
         font-weight: bold;

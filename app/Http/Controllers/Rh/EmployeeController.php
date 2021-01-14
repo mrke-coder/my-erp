@@ -3,14 +3,10 @@
 namespace App\Http\Controllers\Rh;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\EmployeeRequest;
-use App\Models\RH\CV;
 use App\Models\RH\Employee;
-use App\Repositories\RhRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
 {
